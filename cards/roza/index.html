@@ -98,9 +98,9 @@
           const y3 = -sinT * dist;
           const [rx, ry, rz] = rot3(x3, y3, z3, rotY);
           const ps = focal / (focal + rz * 0.5);
-          const sx = cx + rx * scale * ps * 6;
-          const sy = cy + ry * scale * ps * 6;
-          const sz = pt.sz * ps * scale * 6 * eOp;
+          const sx = cx + rx * scale * ps * 2.3;
+          const sy = cy + ry * scale * ps * 2.3;
+          const sz = pt.sz * ps * scale * 2.3 * eOp;
           const viewAng = p.atan2(ry, rx) + pt.twist;
           const light = p.map(-rz, -100, 100, 0.6, 1.3);
           const r = p.constrain(p.lerp(140, 230, pt.radius) * light, 0, 255);
