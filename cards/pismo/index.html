@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Письмо</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.3/p5.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600&family=Cormorant+Garamond:ital,wght@1,400&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #0c0a08; overflow: hidden; height: 100vh; width: 100vw; }
+    canvas { display: block; position: absolute; inset: 0; z-index: 1; }
+    #stage { width: 100%; height: 100%; }
+    .paper {
+      position: fixed; left: 50%; top: 50%;
+      width: min(560px, 88vw);
+      transform: translate(-50%, -50%) perspective(1200px) rotateX(90deg) scale(0.6);
+      background: linear-gradient(180deg, #f3e7d3 0%, #ead9bd 100%);
+      box-shadow: 0 30px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(0,0,0,0.05) inset;
+      padding: 64px 56px;
+      border-radius: 3px;
+      z-index: 2;
+      opacity: 0;
+      transition: transform 1.8s cubic-bezier(.2,.7,.2,1) 0.4s, opacity 1.2s ease 0.4s;
+      font-family: 'Caveat', cursive;
+      color: #3a2a1e;
+    }
+    body.open .paper {
+      transform: translate(-50%, -50%) perspective(1200px) rotateX(0deg) scale(1);
+      opacity: 1;
+    }
+    .paper::before {
+      content: ''; position: absolute; inset: 16px;
+      border: 1px solid rgba(58, 42, 30, 0.12);
+      pointer-events: none;
+    }
+    .salutation {
+      font-size: clamp(22px, 3.2vw, 30px);
+      margin-bottom: 22px;
+      opacity: 0;
+    }
+    .lines {
+      font-size: clamp(19px, 2.4vw, 24px);
+      line-height: 1.55;
+      min-height: 200px;
+    }
+    .lines p { opacity: 0; margin-bottom: 8px; }
+    .signature {
+      margin-top: 28px;
+      text-align: right;
+      font-size: clamp(20px, 2.6vw, 26px);
+      font-style: italic;
+      opacity: 0;
+    }
+    .seal {
+      position: absolute; right: -18px; bottom: -18px;
+      width: 84px; height: 84px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, #a8344b, #6e1a2a);
+      box-shadow: 0 8px 22px rgba(110, 26, 42, 0.5);
+      display: flex; align-items: center; justify-content: center;
+      color: #f3dde0; font-family: 'Cormorant Garamond', serif;
+      font-style: italic; font-size: 28px;
+      opacity: 0; transform: scale(0.5) rotate(-20deg);
+      transition: opacity 0.6s ease, transform 0.6s cubic-bezier(.3,1.6,.5,1);
+    }
+    body.sealed .seal { opacity: 1; transform: scale(1) rotate(-12deg); }
+  </style>
+</head>
+<body>
+  <div id="stage"></div>
+  <div class="paper">
+    <div class="salutation" id="sal"></div>
+    <div class="lines" id="lns"></div>
+    <div class="signature" id="sig"></div>
+    <div class="seal">L</div>
+  </div>
+  <script>
+    const params = new URLSearchParams(location.search);
+    const NAME = params.get('name') || 'Милая';
+    const TEXT = params.get('text') || 'Каждый раз, когда я закрываю глаза, я вижу твою улыбку.|Ты — моё тихое утро и моё громкое сердце.|Это маленькое письмо, чтобы ты знала.';
+    const SIGN = params.get('sign') || 'твой';
+
+    document.getElementById('sal').textContent = NAME + ',';
+    const lines = TEXT.split('|');
+    const lnsEl = document.getElementById('lns');
+    lines.forEach((l) => {
+      const pp = document.createElement('p');
+      pp.textContent = l;
+      lnsEl.appendChild(pp);
+    });
+    document.getElementById('sig').textContent = '— ' + SIGN;
+
+    setTimeout(() => document.body.classList.add('open'), 200);
+    let delay = 2200;
+    document.querySelectorAll('.salutation, .lines p, .signature').forEach((el) => {
+      el.style.transition = 'opacity 1.2s ease';
+      setTimeout(() => { el.style.opacity = 1; }, delay);
+      delay += 900;
+    });
+    setTimeout(() => document.body.classList.add('sealed'), delay + 200);
+
+    const sketch = (p) => {
+      let motes = [];
+      p.setup = () => {
+        p.createCanvas(p.windowWidth, p.windowHeight);
+        p.noStroke();
+        for (let i = 0; i < 120; i++) {
+          motes.push({
+            x: p.random(p.width),
+            y: p.random(p.height),
+            r: p.random(0.6, 2.2),
+            vx: p.random(-6, 6),
+            vy: p.random(-12, -4),
+            phase: p.random(p.TWO_PI),
+            speed: p.random(0.6, 1.6)
+          });
+        }
+      };
+      p.draw = () => {
+        const dt = p.deltaTime / 1000;
+        const t = p.millis() / 1000;
+        p.background(12, 10, 8, 50);
+        const beamX = p.width * 0.35;
+        const beam = p.drawingContext;
+        const grad = beam.createLinearGradient(beamX - 200, 0, beamX + 200, p.height);
+        grad.addColorStop(0, 'rgba(255, 220, 160, 0)');
+        grad.addColorStop(0.5, 'rgba(255, 220, 160, 0.05)');
+        grad.addColorStop(1, 'rgba(255, 220, 160, 0)');
+        beam.fillStyle = grad;
+        beam.fillRect(0, 0, p.width, p.height);
+        for (const m of motes) {
+          m.x += m.vx * dt + Math.sin(t * m.speed + m.phase) * 8 * dt;
+          m.y += m.vy * dt;
+          if (m.y < -10) { m.y = p.height + 10; m.x = p.random(p.width); }
+          if (m.x < -10) m.x = p.width + 10;
+          if (m.x > p.width + 10) m.x = -10;
+          const glow = 0.6 + 0.4 * p.sin(t * 1.5 + m.phase);
+          p.fill(255, 230, 180, 180 * glow);
+          p.circle(m.x, m.y, m.r);
+          p.fill(255, 230, 180, 30 * glow);
+          p.circle(m.x, m.y, m.r * 4);
+        }
+      };
+      p.windowResized = () => p.resizeCanvas(p.windowWidth, p.windowHeight);
+    };
+    new p5(sketch, document.getElementById('stage'));
+  </script>
+</body>
+</html>

@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Созвездие</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.3/p5.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #05060d; overflow: hidden; height: 100vh; width: 100vw; }
+    canvas { display: block; }
+    #stage { width: 100%; height: 100%; }
+    .caption {
+      position: fixed; left: 0; right: 0; bottom: 8%;
+      text-align: center; color: #f0e6d8;
+      font-family: 'Cormorant Garamond', 'Georgia', serif;
+      pointer-events: none; z-index: 5;
+    }
+    .caption .name { font-size: clamp(28px, 5vw, 56px); letter-spacing: 8px; font-weight: 300; opacity: 0; transition: opacity 2s ease 2s; }
+    .caption .sub  { font-size: clamp(11px, 1.3vw, 14px); letter-spacing: 4px; color: #8a8294; margin-top: 14px; opacity: 0; transition: opacity 2s ease 3.2s; text-transform: uppercase; }
+    body.ready .caption .name, body.ready .caption .sub { opacity: 1; }
+  </style>
+</head>
+<body>
+  <div id="stage"></div>
+  <div class="caption">
+    <div class="name" id="nm"></div>
+    <div class="sub" id="sb"></div>
+  </div>
+  <script>
+    const params = new URLSearchParams(location.search);
+    const NAME = params.get('name') || 'Тебе';
+    const SUB  = params.get('text') || 'моё небо';
+    document.getElementById('nm').textContent = NAME;
+    document.getElementById('sb').textContent = SUB;
+
+    const sketch = (p) => {
+      let bgStars = [];
+      let heart = [];
+      let appeared = 0;
+      let lineProgress = 0;
+      let shooters = [];
+      let mx = 0, my = 0;
+      let t = 0;
+
+      function heartPoint(a, scale) {
+        const x = 16 * Math.pow(p.sin(a), 3);
+        const y = -(13 * p.cos(a) - 5 * p.cos(2*a) - 2 * p.cos(3*a) - p.cos(4*a));
+        return { x: x * scale, y: y * scale };
+      }
+
+      p.setup = () => {
+        p.createCanvas(p.windowWidth, p.windowHeight);
+        p.noStroke();
+        for (let i = 0; i < 260; i++) {
+          bgStars.push({
+            x: p.random(p.width), y: p.random(p.height),
+            r: p.random(0.4, 1.6),
+            phase: p.random(p.TWO_PI),
+            speed: p.random(0.5, 2.0),
+            depth: p.random(0.3, 1)
+          });
+        }
+        const n = 22;
+        const scale = p.min(p.width, p.height) * 0.018;
+        for (let i = 0; i < n; i++) {
+          const a = (p.TWO_PI / n) * i - p.HALF_PI;
+          const pt = heartPoint(a, scale);
+          heart.push({
+            x: p.width / 2 + pt.x, y: p.height / 2 + pt.y,
+            tw: p.random(p.TWO_PI), born: i * 0.18
+          });
+        }
+        setTimeout(() => document.body.classList.add('ready'), 100);
+      };
+
+      p.draw = () => {
+        const dt = p.deltaTime / 1000;
+        t += dt;
+        p.background(5, 6, 13, 245);
+
+        const targetMx = (p.mouseX - p.width/2) / p.width;
+        const targetMy = (p.mouseY - p.height/2) / p.height;
+        mx += (targetMx - mx) * 0.04;
+        my += (targetMy - my) * 0.04;
+
+        for (const s of bgStars) {
+          const tw = 0.55 + 0.45 * p.sin(t * s.speed + s.phase);
+          const px = s.x - mx * 24 * s.depth;
+          const py = s.y - my * 24 * s.depth;
+          p.fill(230, 224, 240, 200 * tw * s.depth);
+          p.circle(px, py, s.r);
+        }
+
+        appeared = p.min(heart.length, appeared + dt * 3);
+        for (let i = 0; i < heart.length; i++) {
+          if (i > appeared) break;
+          const h = heart[i];
+          const localT = p.max(0, t - h.born);
+          const grow = p.min(1, localT * 2);
+          const tw = 0.7 + 0.3 * p.sin(t * 1.5 + h.tw);
+          const px = h.x - mx * 40;
+          const py = h.y - my * 40;
+          p.fill(255, 240, 220, 240 * grow);
+          p.circle(px, py, 3.2 * grow + tw * 1.5);
+          p.fill(255, 240, 220, 70 * grow);
+          p.circle(px, py, 9 * grow);
+          p.fill(255, 240, 220, 25 * grow);
+          p.circle(px, py, 22 * grow);
+        }
+
+        if (appeared >= heart.length - 0.1) {
+          lineProgress = p.min(1, lineProgress + dt * 0.35);
+          const upTo = p.floor(lineProgress * heart.length);
+          p.stroke(255, 230, 210, 80);
+          p.strokeWeight(0.7);
+          p.noFill();
+          for (let i = 0; i < upTo; i++) {
+            const a = heart[i];
+            const b = heart[(i + 1) % heart.length];
+            const px1 = a.x - mx * 40, py1 = a.y - my * 40;
+            const px2 = b.x - mx * 40, py2 = b.y - my * 40;
+            p.line(px1, py1, px2, py2);
+          }
+          p.noStroke();
+        }
+
+        if (p.random() < 0.005 && shooters.length < 3) {
+          const side = p.random() < 0.5 ? 'top' : 'right';
+          if (side === 'top') {
+            shooters.push({ x: p.random(p.width*0.2, p.width*0.8), y: -20, vx: p.random(180, 320), vy: p.random(160, 280), life: 1.4 });
+          } else {
+            shooters.push({ x: p.width + 20, y: p.random(p.height*0.1, p.height*0.5), vx: -p.random(220, 360), vy: p.random(160, 280), life: 1.4 });
+          }
+        }
+        for (let i = shooters.length - 1; i >= 0; i--) {
+          const s = shooters[i];
+          s.x += s.vx * dt; s.y += s.vy * dt; s.life -= dt;
+          if (s.life < 0) { shooters.splice(i, 1); continue; }
+          const trail = 80;
+          for (let k = 0; k < 24; k++) {
+            const kr = k / 24;
+            const tx = s.x - s.vx * dt * k * 0.6;
+            const ty = s.y - s.vy * dt * k * 0.6;
+            p.fill(255, 235, 220, 220 * (1 - kr) * s.life);
+            p.circle(tx, ty, 2.2 * (1 - kr) + 0.4);
+          }
+        }
+      };
+
+      p.mousePressed = () => {
+        for (let i = 0; i < 6; i++) {
+          shooters.push({ x: p.mouseX + p.random(-40,40), y: p.mouseY + p.random(-20,20), vx: p.random(-300,300), vy: p.random(-200,200), life: 1.2 });
+        }
+      };
+
+      p.windowResized = () => p.resizeCanvas(p.windowWidth, p.windowHeight);
+    };
+
+    new p5(sketch, document.getElementById('stage'));
+  </script>
+</body>
+</html>
