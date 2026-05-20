@@ -110,6 +110,45 @@
     }
     .hint a { color: var(--accent); text-decoration: none; border-bottom: 1px solid rgba(233, 184, 197, 0.3); }
 
+    .footer {
+      margin-top: 80px;
+      padding-top: 36px;
+      border-top: 1px solid #1e1824;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 18px;
+    }
+    .footer .note {
+      color: var(--mute);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      letter-spacing: 2px;
+      text-align: center;
+    }
+    .footer .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: center;
+    }
+    .footer .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 10px 20px;
+      border-radius: 4px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      letter-spacing: 2px;
+      text-decoration: none;
+      transition: opacity 0.2s, transform 0.2s;
+    }
+    .footer .btn:hover { opacity: 0.8; transform: translateY(-2px); }
+    .footer .btn-star { background: #1e1824; color: #e8e4cd; border: 1px solid #2e2838; }
+    .footer .btn-tip  { background: #1c1418; color: #e9b8c5; border: 1px solid #2e1c22; }
+    .footer .btn-boost{ background: #1a1518; color: #e8c4b0; border: 1px solid #2e201a; }
+
     @media (max-width: 540px) {
       body { padding: 48px 16px 80px; }
       header { margin-bottom: 44px; }
@@ -152,7 +191,22 @@
 
     <div class="hint">
       персонализируй: <code>cards/sozvezdie/?name=Аня&amp;text=моё небо</code><br>
-      инструкции и параметры — в <a href="https://github.com/vincere-mori/pion-p5#readme">README</a>
+      инструкции и параметры — в <a href="https://github.com/vincere-mori/otkrytki#readme">README</a>
+    </div>
+
+    <div class="footer">
+      <div class="note">понравилось? поддержи проект</div>
+      <div class="actions">
+        <a class="btn btn-star" href="https://github.com/vincere-mori/otkrytki" target="_blank">
+          ★ поставить звезду
+        </a>
+        <a class="btn btn-tip" href="https://pay.cloudtips.ru/p/6c077990" target="_blank">
+          ♡ чаевые
+        </a>
+        <a class="btn btn-boost" href="https://boosty.to/jsu/donate" target="_blank">
+          ↑ Boosty
+        </a>
+      </div>
     </div>
   </div>
 </body>
