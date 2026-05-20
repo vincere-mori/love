@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Часы</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.3/p5.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #06080d; overflow: hidden; height: 100vh; width: 100vw;
+      display: flex; align-items: center; justify-content: center; }
+    canvas { display: block; position: absolute; inset: 0; z-index: 1; }
+    #stage { width: 100%; height: 100%; position: absolute; inset: 0; }
+    .center {
+      position: relative; z-index: 2;
+      text-align: center;
+      color: #e8e4f0;
+      font-family: 'Cormorant Garamond', 'Georgia', serif;
+      pointer-events: none;
+    }
+    .center .nm {
+      font-size: clamp(28px, 4.5vw, 50px);
+      letter-spacing: 8px;
+      font-weight: 300;
+      opacity: 0;
+      transition: opacity 2s ease 1.6s;
+    }
+    .center .dt {
+      margin-top: 16px;
+      font-size: clamp(11px, 1.3vw, 14px);
+      letter-spacing: 6px;
+      color: #8a82a0;
+      text-transform: uppercase;
+      opacity: 0;
+      transition: opacity 2s ease 2.6s;
+    }
+    .center .nb {
+      margin-top: 10px;
+      font-size: clamp(11px, 1.2vw, 13px);
+      letter-spacing: 3px;
+      color: #6e6680;
+      font-style: italic;
+      opacity: 0;
+      transition: opacity 2s ease 3.4s;
+    }
+    body.ready .nm, body.ready .dt, body.ready .nb { opacity: 1; }
+  </style>
+</head>
+<body>
+  <div id="stage"></div>
+  <div class="center">
+    <div class="nm" id="nm"></div>
+    <div class="dt" id="dt"></div>
+    <div class="nb" id="nb"></div>
+  </div>
+  <script>
+    const params = new URLSearchParams(location.search);
+    const NAME = params.get('name') || 'Вместе';
+    const DATE = params.get('date') || '';
+    const NOTE = params.get('text') || '';
+    document.getElementById('nm').textContent = NAME;
+    document.getElementById('dt').textContent = DATE;
+    document.getElementById('nb').textContent = NOTE;
+    setTimeout(() => document.body.classList.add('ready'), 300);
+
+    const sketch = (p) => {
+      const N = 22;
+      let ribbons = [];
+      let t = 0;
+      let pulseT = 0;
+
+      p.setup = () => {
+        p.createCanvas(p.windowWidth, p.windowHeight);
+        for (let i = 0; i < N; i++) {
+          ribbons.push({
+            a0: (p.TWO_PI / N) * i,
+            phase: p.random(p.TWO_PI),
+            speed: p.random(0.4, 0.9),
+            hue: p.random(),
+            width: p.random(2.2, 4.8),
+            born: i * 0.06
+          });
+        }
+      };
+
+      p.draw = () => {
+        const dt = p.deltaTime / 1000;
+        t += dt;
+        pulseT += dt;
+        p.background(6, 8, 13, 50);
+
+        const cx = p.width / 2, cy = p.height / 2;
+        const R = p.min(p.width, p.height) * 0.36;
+        const rInner = R * 0.55;
+
+        const pulse = p.constrain(1 - pulseT, 0, 1);
+        if (pulseT > 1) pulseT = 0;
+        const pulseScale = 1 + pulse * 0.015;
+
+        const ringR = R * pulseScale;
+        const ringIn = rInner * pulseScale;
+
+        for (let i = 0; i < ribbons.length; i++) {
+          const rb = ribbons[i];
+          const reveal = p.constrain((t - rb.born) / 1.2, 0, 1);
+          if (reveal < 0.01) continue;
+          const ease = reveal < 0.5 ? 4 * reveal * reveal * reveal : 1 - p.pow(-2 * reveal + 2, 3) / 2;
+
+          const segs = 60;
+          p.noFill();
+          const hueR = p.lerp(120, 230, rb.hue);
+          const hueG = p.lerp(140, 200, rb.hue);
+          const hueB = p.lerp(220, 250, rb.hue);
+
+          for (let pass = 0; pass < 2; pass++) {
+            const w = rb.width * (pass === 0 ? 1.0 : 2.6);
+            const alpha = pass === 0 ? 220 : 28;
+            p.stroke(hueR, hueG, hueB, alpha * ease);
+            p.strokeWeight(w);
+            p.beginShape();
+            for (let s = 0; s <= segs; s++) {
+              const u = s / segs;
+              const wave = p.sin(u * p.PI * 4 + t * rb.speed * 2 + rb.phase) * 14;
+              const radius = p.lerp(ringIn, ringR, u) + wave;
+              const a = rb.a0 + p.sin(t * 0.3 + rb.phase) * 0.08;
+              const x = cx + p.cos(a) * radius;
+              const y = cy + p.sin(a) * radius;
+              p.curveVertex(x, y);
+            }
+            p.endShape();
+          }
+        }
+
+        p.noStroke();
+        p.fill(232, 228, 240, 22 + pulse * 60);
+        p.circle(cx, cy, ringIn * 1.5);
+        p.fill(232, 228, 240, 8);
+        p.circle(cx, cy, ringIn * 2.6);
+
+        for (let i = 0; i < 12; i++) {
+          const a = (p.TWO_PI / 12) * i - p.HALF_PI;
+          const x1 = cx + p.cos(a) * (ringR + 18);
+          const y1 = cy + p.sin(a) * (ringR + 18);
+          const x2 = cx + p.cos(a) * (ringR + 28);
+          const y2 = cy + p.sin(a) * (ringR + 28);
+          p.stroke(180, 174, 200, 90);
+          p.strokeWeight(1.2);
+          p.line(x1, y1, x2, y2);
+        }
+        p.noStroke();
+      };
+
+      p.windowResized = () => p.resizeCanvas(p.windowWidth, p.windowHeight);
+    };
+
+    new p5(sketch, document.getElementById('stage'));
+  </script>
+</body>
+</html>

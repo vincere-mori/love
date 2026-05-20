@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Сердце</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.3/p5.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #0a0509; overflow: hidden; height: 100vh; width: 100vw; }
+    canvas { display: block; }
+    #stage { width: 100%; height: 100%; }
+    .label {
+      position: fixed; left: 0; right: 0; bottom: 7%;
+      text-align: center; color: #f3dde5;
+      font-family: 'Cormorant Garamond', 'Georgia', serif;
+      pointer-events: none; z-index: 5;
+      letter-spacing: 6px;
+      font-size: clamp(14px, 1.6vw, 18px);
+      text-transform: uppercase;
+      opacity: 0;
+      transition: opacity 2.4s ease 1.8s;
+    }
+    body.ready .label { opacity: 0.82; }
+    .hint {
+      position: fixed; left: 0; right: 0; top: 5%;
+      text-align: center; color: #4d3942;
+      font-family: 'Cormorant Garamond', 'Georgia', serif;
+      pointer-events: none;
+      font-size: 11px; letter-spacing: 3px;
+      text-transform: uppercase;
+      opacity: 0;
+      transition: opacity 2s ease 3s;
+    }
+    body.ready .hint { opacity: 0.7; }
+  </style>
+</head>
+<body>
+  <div id="stage"></div>
+  <div class="hint">нажми</div>
+  <div class="label" id="lb"></div>
+  <script>
+    const params = new URLSearchParams(location.search);
+    const TEXT = params.get('text') || params.get('name') || 'для тебя';
+    document.getElementById('lb').textContent = TEXT;
+
+    const sketch = (p) => {
+      const N = 2400;
+      let pts = [];
+      let rotY = 0, rotX = 0;
+      let aimY = 0, aimX = 0;
+      let t = 0;
+      let burst = 0;
+
+      function heartXY(a) {
+        return {
+          x: 16 * Math.pow(p.sin(a), 3),
+          y: -(13 * p.cos(a) - 5 * p.cos(2*a) - 2 * p.cos(3*a) - p.cos(4*a))
+        };
+      }
+
+      p.setup = () => {
+        p.createCanvas(p.windowWidth, p.windowHeight);
+        p.noStroke();
+        for (let i = 0; i < N; i++) {
+          const a = p.random(p.TWO_PI);
+          const xy = heartXY(a);
+          const inner = p.pow(p.random(), 0.5);
+          const x = xy.x * inner;
+          const y = xy.y * inner;
+          const z = (p.random() - 0.5) * 8 * (0.4 + 0.6 * (1 - inner));
+          pts.push({
+            x0: x, y0: y, z0: z,
+            x, y, z,
+            vx: 0, vy: 0, vz: 0,
+            hue: p.random(),
+            twPhase: p.random(p.TWO_PI),
+            size: p.random(0.7, 1.8)
+          });
+        }
+        setTimeout(() => document.body.classList.add('ready'), 200);
+      };
+
+      function rot(x, y, z, ax, ay) {
+        const cy = p.cos(ay), sy = p.sin(ay);
+        let nx = x * cy + z * sy;
+        let nz = -x * sy + z * cy;
+        const cx = p.cos(ax), sx = p.sin(ax);
+        let ny = y * cx - nz * sx;
+        nz = y * sx + nz * cx;
+        return [nx, ny, nz];
+      }
+
+      p.draw = () => {
+        const dt = p.deltaTime / 1000;
+        t += dt;
+        p.background(10, 5, 9, 60);
+
+        aimY = (p.mouseX - p.width/2) / p.width * 1.5;
+        aimX = (p.mouseY - p.height/2) / p.height * 0.9;
+        rotY += (aimY - rotY) * 0.04 + dt * 0.15;
+        rotX += (aimX - rotX) * 0.04;
+
+        const pulse = 1 + 0.06 * p.sin(t * 1.8) + 0.03 * p.sin(t * 3.6 + 1);
+
+        const scale = p.min(p.width, p.height) * 0.022;
+        const cx = p.width / 2, cy = p.height / 2;
+        const focal = 600;
+        burst = p.max(0, burst - dt * 0.6);
+
+        const drawList = [];
+
+        for (const pt of pts) {
+          if (burst > 0.01) {
+            pt.vx += (pt.x0 - pt.x) * 0.06;
+            pt.vy += (pt.y0 - pt.y) * 0.06;
+            pt.vz += (pt.z0 - pt.z) * 0.06;
+            pt.vx *= 0.88; pt.vy *= 0.88; pt.vz *= 0.88;
+            pt.x += pt.vx; pt.y += pt.vy; pt.z += pt.vz;
+          } else {
+            pt.x = pt.x0; pt.y = pt.y0; pt.z = pt.z0;
+          }
+          const [rx, ry, rz] = rot(pt.x * pulse, pt.y * pulse, pt.z * pulse, rotX, rotY);
+          const ps = focal / (focal + rz * scale);
+          const sx = cx + rx * scale * ps;
+          const sy = cy + ry * scale * ps;
+          drawList.push({ sx, sy, ps, rz, hue: pt.hue, twPhase: pt.twPhase, size: pt.size });
+        }
+
+        drawList.sort((a, b) => b.rz - a.rz);
+
+        for (const d of drawList) {
+          const tw = 0.6 + 0.4 * p.sin(t * 2.2 + d.twPhase);
+          const depth = p.constrain(d.ps, 0.4, 1.4);
+          const r = p.lerp(220, 255, d.hue);
+          const g = p.lerp(110, 200, d.hue * 0.6);
+          const b = p.lerp(140, 200, d.hue);
+          p.fill(r, g, b, 200 * tw * depth);
+          p.circle(d.sx, d.sy, d.size * d.ps * 2.2);
+          p.fill(r, g, b, 40 * tw);
+          p.circle(d.sx, d.sy, d.size * d.ps * 6);
+        }
+      };
+
+      p.mousePressed = () => {
+        burst = 1;
+        for (const pt of pts) {
+          const dx = pt.x0, dy = pt.y0, dz = pt.z0;
+          const len = Math.sqrt(dx*dx + dy*dy + dz*dz) + 0.01;
+          const f = p.random(0.5, 1.4);
+          pt.vx = dx / len * 6 * f + p.random(-2, 2);
+          pt.vy = dy / len * 6 * f + p.random(-2, 2);
+          pt.vz = dz / len * 6 * f + p.random(-2, 2);
+        }
+      };
+
+      p.windowResized = () => p.resizeCanvas(p.windowWidth, p.windowHeight);
+    };
+
+    new p5(sketch, document.getElementById('stage'));
+  </script>
+</body>
+</html>

@@ -3,683 +3,157 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Пион</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.3/p5.min.js"></script>
+  <title>Открытки</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=JetBrains+Mono:wght@300;400&display=swap" rel="stylesheet">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-
+    :root {
+      --bg: #08070d;
+      --fg: #ece6db;
+      --mute: #6e6678;
+      --accent: #e9b8c5;
+    }
     body {
-      background: #07060a;
-      overflow: hidden;
-      height: 100vh;
-      width: 100vw;
+      background: var(--bg);
+      color: var(--fg);
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      min-height: 100vh;
+      padding: 80px 24px 120px;
     }
-
-    canvas { display: block; }
-
-    #stage { width: 100%; height: 100%; }
-
-    #intro {
-      position: fixed;
-      inset: 0;
-      z-index: 999;
-      background: #07060a;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      transition: opacity 0.9s ease;
-    }
-
-    #intro.hide { opacity: 0; pointer-events: none; }
-
-    #intro .label {
-      color: #f3eaf0;
-      font-family: 'JetBrains Mono', 'Courier New', monospace;
-      font-size: 13px;
+    .wrap { max-width: 1080px; margin: 0 auto; }
+    header { text-align: center; margin-bottom: 72px; }
+    h1 {
+      font-size: clamp(40px, 6vw, 72px);
+      font-weight: 300;
       letter-spacing: 6px;
-      opacity: 0.65;
-      margin-bottom: 22px;
+      margin-bottom: 16px;
     }
-
-    #intro .track {
-      width: 200px;
-      height: 2px;
-      background: #1a1820;
-      border-radius: 2px;
-      overflow: hidden;
-    }
-
-    #intro .fill {
-      height: 100%;
-      width: 0%;
-      background: linear-gradient(90deg, #b35c8a, #efb8d2, #f0e0c9);
-      transition: width 0.18s;
-    }
-
-    #intro .num {
-      color: #4a4452;
-      font-family: 'JetBrains Mono', 'Courier New', monospace;
-      font-size: 10px;
-      margin-top: 12px;
+    .lede {
+      color: var(--mute);
+      font-size: clamp(14px, 1.6vw, 18px);
       letter-spacing: 2px;
+      max-width: 560px;
+      margin: 0 auto;
+      font-style: italic;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 22px;
+    }
+    .card {
+      position: relative;
+      display: block;
+      aspect-ratio: 4 / 5;
+      border-radius: 6px;
+      overflow: hidden;
+      text-decoration: none;
+      color: inherit;
+      background: #14101a;
+      transition: transform 0.5s cubic-bezier(.2,.7,.2,1), box-shadow 0.5s ease;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+    }
+    .card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+    }
+    .card .art {
+      position: absolute; inset: 0;
+      background-size: cover; background-position: center;
+      transition: transform 1.2s ease;
+    }
+    .card:hover .art { transform: scale(1.06); }
+    .card .veil {
+      position: absolute; inset: 0;
+      background: linear-gradient(180deg, transparent 40%, rgba(8,7,13,0.92) 100%);
+    }
+    .card .meta {
+      position: absolute; left: 24px; right: 24px; bottom: 22px;
+      z-index: 2;
+    }
+    .card .ttl {
+      font-size: 26px;
+      font-weight: 400;
+      letter-spacing: 4px;
+      margin-bottom: 6px;
+    }
+    .card .sub {
+      font-size: 12px;
+      color: var(--mute);
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .pion    .art { background: radial-gradient(circle at 50% 38%, #e9b8d2 0%, #b35c8a 22%, #3a1c2e 55%, #07060a 100%); }
+    .sozv    .art { background: radial-gradient(circle at 50% 45%, #ffe4c4 0%, #8a6da0 18%, #1a1530 60%, #05060d 100%); }
+    .serd    .art { background: radial-gradient(circle at 50% 50%, #ffb4c4 0%, #c44a6a 18%, #3a1020 55%, #0a0509 100%); }
+    .pism    .art { background: linear-gradient(140deg, #2a1a10 0%, #5c3a22 30%, #8a6a48 55%, #1a1108 100%); }
+    .roza    .art { background: radial-gradient(circle at 50% 50%, #e8c4ce 0%, #c43a5a 22%, #2a0810 58%, #0a0608 100%); }
+    .chas    .art { background: radial-gradient(circle at 50% 50%, #b8c8e8 0%, #5e6a9a 25%, #181a2e 60%, #06080d 100%); }
+
+    .hint {
+      margin-top: 64px;
+      text-align: center;
+      color: var(--mute);
+      font-size: 13px;
+      letter-spacing: 3px;
+      line-height: 1.8;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .hint code {
+      background: #14101a;
+      padding: 2px 8px;
+      border-radius: 3px;
+      color: var(--accent);
+      font-size: 12px;
+    }
+    .hint a { color: var(--accent); text-decoration: none; border-bottom: 1px solid rgba(233, 184, 197, 0.3); }
+
+    @media (max-width: 540px) {
+      body { padding: 48px 16px 80px; }
+      header { margin-bottom: 44px; }
     }
   </style>
 </head>
 <body>
+  <div class="wrap">
+    <header>
+      <h1>открытки</h1>
+      <div class="lede">шесть маленьких посланий — выбери, открой, перешли</div>
+    </header>
 
-  <div id="stage"></div>
-
-  <div id="intro">
-    <div class="label">ЦВЕТЕНИЕ</div>
-    <div class="track">
-      <div class="fill" id="intro-fill"></div>
+    <div class="grid">
+      <a class="card pion" href="cards/pion/">
+        <div class="art"></div><div class="veil"></div>
+        <div class="meta"><div class="ttl">пион</div><div class="sub">3D · цветение</div></div>
+      </a>
+      <a class="card sozv" href="cards/sozvezdie/">
+        <div class="art"></div><div class="veil"></div>
+        <div class="meta"><div class="ttl">созвездие</div><div class="sub">небо · сердце</div></div>
+      </a>
+      <a class="card serd" href="cards/serdtse/">
+        <div class="art"></div><div class="veil"></div>
+        <div class="meta"><div class="ttl">сердце</div><div class="sub">частицы · пульс</div></div>
+      </a>
+      <a class="card pism" href="cards/pismo/">
+        <div class="art"></div><div class="veil"></div>
+        <div class="meta"><div class="ttl">письмо</div><div class="sub">бумага · пыль</div></div>
+      </a>
+      <a class="card roza" href="cards/roza/">
+        <div class="art"></div><div class="veil"></div>
+        <div class="meta"><div class="ttl">роза</div><div class="sub">спираль · лепестки</div></div>
+      </a>
+      <a class="card chas" href="cards/chasy/">
+        <div class="art"></div><div class="veil"></div>
+        <div class="meta"><div class="ttl">часы</div><div class="sub">ленты · дата</div></div>
+      </a>
     </div>
-    <div class="num" id="intro-num">0%</div>
+
+    <div class="hint">
+      персонализируй: <code>cards/sozvezdie/?name=Аня&amp;text=моё небо</code><br>
+      инструкции и параметры — в <a href="https://github.com/vincere-mori/pion-p5#readme">README</a>
+    </div>
   </div>
-
-  <script>
-    let p5Instance = null;
-
-    const introEl  = document.getElementById('intro');
-    const introBar = document.getElementById('intro-fill');
-    const introNum = document.getElementById('intro-num');
-
-    let introTimerDone = false;
-    let warmupDone     = false;
-
-    function tryReveal() {
-      if (introTimerDone && warmupDone) {
-        if (p5Instance) p5Instance.beginScene();
-        introEl.classList.add('hide');
-      }
-    }
-
-    setTimeout(() => { introTimerDone = true; tryReveal(); }, 2300);
-
-    const sketch = function(p) {
-      const FB_W = 720, FB_H = 720;
-      let frame;
-      const glyphs = 'АБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ0123456789@#%&*'.split('');
-      let context;
-
-      let blooms = [];
-      let activeIdx = 0;
-
-      let stage   = 'opening';
-      let stageT  = 0;
-
-      let openAmt    = 0;
-      let openTarget = 1;
-
-      let viewMode = 0, prevView = 0, viewT = 1;
-
-      let cell = 4, cellTarget = 4;
-      const CELL_MIN = 4, CELL_MAX = 22;
-      const MODE_INTERVAL = 0.95;
-      let cellDir = 1, cellTimer = 0;
-
-      let pullX = 0, pullY = 0;
-      let clock = 0;
-
-      let rotPitch = 0, rotYaw = 0, rotRoll = 0;
-      let spinPitch = 0, spinYaw = 0, spinRoll = 0;
-      let curPitch = 0, curYaw = 0;
-      let aimPitch = 0, aimYaw = 0;
-      let easeRot = 0;
-
-      let warming   = true;
-      let warmCount = 0;
-      const WARM_NEED = 60;
-
-      let breakTimer  = 0;
-      let breakOn     = false;
-      let breakAmt    = 0;
-      let breakBands  = [];
-
-      let fade   = 0;
-
-      const easeInOutCubic = x => x < 0.5 ? 4*x*x*x : 1 - p.pow(-2*x+2, 3) / 2;
-      const easeOutQuart   = x => 1 - p.pow(1 - x, 4);
-
-      p.setup = function() {
-        p.createCanvas(p.windowWidth, p.windowHeight);
-        p.pixelDensity(1);
-        p.textFont('JetBrains Mono, Courier New, monospace');
-        p.textAlign(p.CENTER, p.CENTER);
-        p.noStroke();
-
-        frame = p.createGraphics(FB_W, FB_H);
-        frame.pixelDensity(1);
-        frame.noSmooth();
-        frame.canvas.getContext('2d', { willReadFrequently: true });
-
-        context = p.drawingContext;
-
-        blooms = [
-          { c1:[215,115,165], c2:[252,205,228], c3:[155,55,105], stemC:[58,90,44], layers:15, petalsPerLayer:10, maxRadius:160, ruffleAmt:13, sepals:5 },
-          { c1:[245,160,140], c2:[255,225,205], c3:[200,80,80],  stemC:[60,92,46], layers:14, petalsPerLayer:11, maxRadius:152, ruffleAmt:15, sepals:6 },
-          { c1:[180,90,170],  c2:[235,175,220], c3:[130,40,130], stemC:[52,82,42], layers:16, petalsPerLayer:9,  maxRadius:165, ruffleAmt:11, sepals:5 },
-        ];
-
-        startBloom(0);
-      };
-
-      function startBloom(idx) {
-        activeIdx  = idx;
-        openAmt    = 0;
-        openTarget = 1;
-        fade       = 0;
-        stage      = 'opening';
-        stageT     = 0;
-        cell       = CELL_MIN;
-        cellTarget = CELL_MIN;
-        cellDir    = 1;
-        cellTimer  = 0;
-        viewT      = 1;
-      }
-
-      p.beginScene = function() { warming = false; };
-
-      p.draw = function() {
-        const dt = p.deltaTime / 1000;
-        const b  = blooms[activeIdx];
-
-        if (warming) {
-          p.background(7, 6, 10);
-          openAmt = p.min(0.5, warmCount / WARM_NEED * 0.5);
-          paintBloomToBuffer(b, openAmt, 0);
-          warmCount++;
-          const pct = p.min(100, p.floor(warmCount / WARM_NEED * 100));
-          if (introBar) introBar.style.width = pct + '%';
-          if (introNum) introNum.textContent = pct + '%';
-          if (warmCount >= WARM_NEED) {
-            warmupDone = true;
-            tryReveal();
-          }
-          return;
-        }
-
-        p.background(7, 6, 10);
-        clock += 0.016;
-
-        easeRot = p.min(1, easeRot + dt * 0.09);
-        const re = easeInOutCubic(easeRot);
-
-        spinYaw   += dt * 0.28 * re;
-        spinPitch += dt * 0.11 * p.sin(clock * 0.16) * re;
-        spinRoll  += dt * 0.07 * p.sin(clock * 0.10 + 1.7) * re;
-
-        aimPitch = (p.mouseY - p.height / 2) / p.height * 1.15;
-        aimYaw   = (p.mouseX - p.width  / 2) / p.width  * 1.7;
-        curPitch += (aimPitch - curPitch) * 0.045;
-        curYaw   += (aimYaw   - curYaw)   * 0.045;
-
-        rotPitch = spinPitch + curPitch * re;
-        rotYaw   = spinYaw   + curYaw   * re;
-        rotRoll  = spinRoll;
-
-        if (stage === 'opening') {
-          openAmt += (openTarget - openAmt) * 0.0065;
-          stageT  += dt;
-          if (openAmt > 0.98) { openAmt = 1; stage = 'live'; stageT = 0; }
-        }
-
-        cellTimer += dt;
-        if (cellTimer > MODE_INTERVAL) {
-          cellTimer = 0;
-          fireBreak();
-          prevView = viewMode;
-          viewMode = (viewMode + 1) % 3;
-          viewT    = 0;
-          if (cellDir === 1) { cellTarget = CELL_MAX; cellDir = -1; }
-          else               { cellTarget = CELL_MIN; cellDir =  1; }
-        }
-
-        if (stage === 'live') {
-          stageT += dt;
-          if (stageT > 26) { stage = 'fading'; stageT = 0; fireBreak(); }
-        }
-
-        if (stage === 'fading') {
-          fade   = p.min(1, fade + dt * 0.045);
-          stageT += dt;
-          if (fade > 0.95) { stage = 'pause'; stageT = 0; }
-        }
-
-        if (stage === 'pause') {
-          stageT += dt;
-          if (stageT > 0.55) {
-            prevView = viewMode;
-            viewMode = (viewMode + 1) % 3;
-            viewT    = 0;
-            fireBreak();
-            startBloom((activeIdx + 1) % blooms.length);
-          }
-        }
-
-        cell   += (cellTarget - cell) * 0.085;
-        viewT   = p.min(1, viewT + dt * 4.2);
-
-        stepBreak(dt);
-
-        if (stage === 'live') {
-          pullX += ((p.mouseX - p.width  / 2) * 0.07 - pullX) * 0.045;
-          pullY += ((p.mouseY - p.height / 2) * 0.07 - pullY) * 0.045;
-        } else {
-          pullX *= 0.94;
-          pullY *= 0.94;
-        }
-
-        paintBloomToBuffer(b, openAmt, fade);
-
-        breakTimer -= dt;
-        if (breakTimer <= 0 && !breakOn) {
-          breakTimer = p.random(3.2, 7.5);
-          if (p.random() < 0.42) fireBreak();
-        }
-
-        rasterize();
-        paintBreak();
-        showFps();
-      };
-
-      function fireBreak() {
-        breakOn  = true;
-        breakAmt = p.random(0.4, 1.0);
-        breakBands = [];
-        const sc = p.min(p.width / FB_W, p.height / FB_H) * 0.86;
-        const rW = FB_W * sc, rH = FB_H * sc;
-        const ox = (p.width  - rW) / 2 + pullX;
-        const oy = (p.height - rH) / 2 + pullY;
-        const n = p.floor(p.random(3, 11));
-        for (let i = 0; i < n; i++) {
-          const sy = p.random(oy, oy + rH);
-          const sh = p.min(p.random(2, rH * 0.08), oy + rH - sy);
-          breakBands.push({
-            y: sy, h: sh, fx: ox, fw: rW,
-            offset: p.random(-85, 85) * breakAmt,
-            chroma: p.random() < 0.42,
-            duration: p.random(0.08, 0.32)
-          });
-        }
-      }
-
-      function stepBreak(dt) {
-        if (!breakOn) return;
-        let done = true;
-        for (const s of breakBands) {
-          s.duration -= dt;
-          if (s.duration > 0) done = false;
-          else s.offset *= 0.72;
-        }
-        if (done) { breakOn = false; breakBands = []; }
-      }
-
-      function paintBreak() {
-        if (!breakOn || !breakBands.length) return;
-        for (const s of breakBands) {
-          if (p.abs(s.offset) < 0.5) continue;
-          const sx = p.floor(s.fx), sy = p.floor(s.y), sw = p.floor(s.fw), sh = p.floor(s.h);
-          if (sw < 1 || sh < 1) continue;
-          if (s.chroma) {
-            context.save();
-            context.globalAlpha = 0.7;
-            context.globalCompositeOperation = 'lighter';
-            context.drawImage(context.canvas, sx, sy, sw, sh, sx + s.offset*1.5, sy, sw, sh);
-            context.globalAlpha = 0.45;
-            context.drawImage(context.canvas, sx, sy, sw, sh, sx - s.offset, sy, sw, sh);
-            context.restore();
-          } else {
-            context.drawImage(context.canvas, sx, sy, sw, sh, sx + s.offset, sy, sw, sh);
-          }
-        }
-      }
-
-      function paintBloomToBuffer(b, op, fd) {
-        frame.background(7, 6, 10);
-        frame.noStroke();
-        fd = fd || 0;
-        const stemProgress = p.constrain(op * 3, 0, 1);
-        const bloomVal     = p.constrain((op - 0.15) / 0.85, 0, 1);
-        const droop        = fd * 58;
-        const cx = FB_W / 2;
-        const cy = FB_H * 0.38 + droop;
-        paintStem(frame, b, stemProgress, fd, cx, cy);
-        paintPetals(frame, b, bloomVal, fd, cx, cy);
-        frame.loadPixels();
-      }
-
-      function paintStem(g, b, progress, fd, cx, cy) {
-        fd = fd || 0;
-        const stemLen = FB_H * 0.42;
-        const stemX   = FB_W / 2;
-        const top     = cy;
-        const bot     = top + stemLen;
-        const visLen  = stemLen * easeOutQuart(progress);
-        const visTop  = bot - visLen;
-        for (let y = visTop; y < bot; y += 3) {
-          const tt    = (y - top) / stemLen;
-          const sw    = p.lerp(15, 8, tt);
-          const bend  = fd * 48 * (1 - tt) * p.sin((1 - tt) * p.PI);
-          const wave  = p.sin(tt * p.PI * 0.32) * 22 + p.sin(tt * p.PI * 0.85) * 8 + bend;
-          let r  = p.lerp(b.stemC[0], b.stemC[0] * 0.5, tt);
-          let gc = p.lerp(b.stemC[1], b.stemC[1] * 0.5, tt);
-          let bl = p.lerp(b.stemC[2], b.stemC[2] * 0.5, tt);
-          if (fd > 0) {
-            r  = p.lerp(r,  r  * 0.4 + 30, fd * 0.5);
-            gc = p.lerp(gc, gc * 0.3 + 15, fd * 0.5);
-            bl = p.lerp(bl, bl * 0.25 + 8, fd * 0.5);
-          }
-          g.fill(r, gc, bl);
-          g.ellipse(stemX + wave, y, sw, 5);
-          g.fill(r * 1.4, gc * 1.4, bl * 1.3, 50);
-          g.ellipse(stemX + wave - 2, y, sw * 0.2, 3);
-        }
-        if (progress > 0.3) {
-          const lp = p.constrain((progress - 0.3) / 0.4, 0, 1);
-          const ly = top + stemLen * 0.22;
-          const lx = stemX + p.sin(0.22 * p.PI * 0.3) * 22;
-          paintLeaf(g, lx, ly, -1, 48 * lp, b.stemC);
-        }
-        if (progress > 0.5) {
-          const lp = p.constrain((progress - 0.5) / 0.4, 0, 1);
-          const ly = top + stemLen * 0.50;
-          const lx = stemX + p.sin(0.50 * p.PI * 0.3) * 22;
-          paintLeaf(g, lx, ly, 1, 42 * lp, b.stemC);
-        }
-        if (progress > 0.7) {
-          const lp = p.constrain((progress - 0.7) / 0.3, 0, 1);
-          const ly = top + stemLen * 0.35;
-          const lx = stemX + p.sin(0.35 * p.PI * 0.3) * 22;
-          paintLeaf(g, lx, ly, -1, 35 * lp, b.stemC);
-        }
-      }
-
-      function paintLeaf(g, x, y, side, sz, sc) {
-        if (sz < 2) return;
-        g.push(); g.translate(x, y); g.rotate(side * 0.65);
-        g.fill(sc[0]*0.85, sc[1]*1.15, sc[2]*0.75);
-        g.beginShape();
-        g.vertex(0, 0);
-        g.bezierVertex(sz*0.35*side, -sz*0.38, sz*0.85*side, -sz*0.22, sz*1.35*side, 0);
-        g.bezierVertex(sz*0.85*side,  sz*0.22,  sz*0.35*side, sz*0.38, 0, 0);
-        g.endShape(p.CLOSE);
-        g.fill(sc[0]*1.1, sc[1]*1.4, sc[2]*1.0, 60);
-        g.beginShape();
-        g.vertex(sz*0.1*side, 0);
-        g.bezierVertex(sz*0.4*side, -sz*0.15, sz*0.7*side, -sz*0.08, sz*1.0*side, 0);
-        g.bezierVertex(sz*0.7*side,  sz*0.08,  sz*0.4*side, sz*0.15,  sz*0.1*side, 0);
-        g.endShape(p.CLOSE);
-        g.stroke(sc[0]*1.3, sc[1]*1.5, sc[2]*1.2, 70);
-        g.strokeWeight(0.8);
-        g.line(0, 0, sz*1.15*side, 0);
-        for (let i = 1; i <= 3; i++) {
-          const vx = sz * 0.3 * i * side;
-          g.line(vx, 0, vx + sz*0.2*side, -sz*0.12);
-          g.line(vx, 0, vx + sz*0.2*side,  sz*0.12);
-        }
-        g.noStroke(); g.pop();
-      }
-
-      function rotate3(x, y, z) {
-        const cY = p.cos(rotYaw),   sY = p.sin(rotYaw);
-        const rx  = x*cY + z*sY;
-        const rz  = -x*sY + z*cY;
-        const cX  = p.cos(rotPitch), sX = p.sin(rotPitch);
-        const ry  = y*cX - rz*sX;
-        const rz2 = y*sX + rz*cX;
-        const cZ  = p.cos(rotRoll),  sZ = p.sin(rotRoll);
-        const fx  = rx*cZ - ry*sZ;
-        const fy  = rx*sZ + ry*cZ;
-        return [fx, fy, rz2];
-      }
-
-      function paintPetals(g, b, op, fd, cx, cy) {
-        fd = fd || 0;
-        const focal    = 430;
-        const tilt = fd * 0.18;
-        const cosW = p.cos(tilt), sinW = p.sin(tilt);
-        const items = [];
-
-        if (b.sepals && op < 0.7) {
-          const ns      = b.sepals;
-          const openAng = easeInOutCubic(op) * p.HALF_PI * 0.9;
-          let sepalA = p.map(p.constrain(op, 0, 0.7), 0, 0.7, 255, 0);
-          if (fd) sepalA *= (1 - fd);
-          if (sepalA > 5) {
-            for (let i = 0; i < ns; i++) {
-              const a    = (p.TWO_PI / ns) * i;
-              const sTilt = p.HALF_PI * 0.35 - openAng;
-              const dist = 50;
-              const ct = p.cos(sTilt), st = p.sin(sTilt);
-              const x3 = p.cos(a)*dist*ct, z3 = p.sin(a)*dist*ct, y3 = -st*dist;
-              const [rx, ry, rz] = rotate3(x3, y3, z3);
-              const ps    = focal / (focal + rz);
-              const sepA  = p.atan2(ry, rx);
-              const fv    = p.max(focal / (focal + p.abs(rz)), 0.15);
-              items.push({ rz, kind:'s', sx:rx*ps, sy:ry*ps, sa:sepA,
-                sLen:80*ps, sW:25*ps*fv, sAlpha:sepalA, sc:b.stemC });
-            }
-          }
-        }
-
-        const coreA = p.constrain((op - 0.45) / 0.3, 0, 1) * (1 - fd);
-        if (coreA > 0) items.push({ rz:0, kind:'c', sx:0, sy:0, sa:0, alpha:coreA });
-
-        for (let layer = b.layers; layer >= 0; layer--) {
-          const lr      = layer / b.layers;
-          const delay   = (1 - lr) * 0.35;
-          const lOp     = p.constrain((op - delay) / (1 - delay), 0, 1);
-          const eOp     = easeInOutCubic(lOp);
-          if (eOp < 0.01) continue;
-          const lFall = p.constrain((fd * 1.4 - (1 - lr) * 0.4) / 0.6, 0, 1);
-          if (lFall > 0.9) continue;
-          const inner = (1 - lr);
-          const np    = b.petalsPerLayer + p.floor(layer * 1.5) + p.floor(inner * 5);
-          const baseR = p.lerp(10, b.maxRadius, lr);
-          let tiltA   = p.lerp(p.PI * 0.42, p.PI * 0.04, eOp) + lFall * p.PI * 0.22;
-          tiltA -= inner * 0.15 * eOp;
-          const cosT = p.cos(tiltA), sinT = p.sin(tiltA);
-
-          for (let i = 0; i < np; i++) {
-            const hash = ((i * 73 + layer * 137) & 0xFF) / 255;
-            if (fd > 0.1 && hash < (fd - 0.1) * 1.3) continue;
-            let angle = (p.TWO_PI / np) * i + layer * 0.42 + p.sin(layer * 2.1) * 0.12;
-            angle += hash * 0.15;
-            const drp    = lFall * 0.5 * (0.4 + lr * 0.6);
-            const shrink = 1 - lFall * 0.35;
-            const dist   = baseR * eOp * (0.35 + lr * 0.25);
-            let x3 = p.cos(angle)*dist*cosT, z3 = p.sin(angle)*dist*cosT, y3 = -sinT*dist + drp*28;
-            if (tilt > 0.001) {
-              const ny = y3*cosW - x3*sinW*0.3;
-              x3 = x3 + y3*sinW*0.3; y3 = ny;
-            }
-            const [rx, ry, rz] = rotate3(x3, y3, z3);
-            const ps = focal / (focal + rz);
-            const sx = rx * ps, sy = ry * ps;
-            const va = p.atan2(ry, rx);
-            const df = focal / (focal + p.abs(rz));
-            const fv = p.max(df, 0.12);
-            const nx3 = p.cos(angle)*cosT, ny3 = -sinT, nz3 = p.sin(angle)*cosT;
-            const [,,lnz] = rotate3(nx3, ny3, nz3);
-            const dot = p.constrain(-lnz, -1, 1);
-            const lm  = p.map(dot, -1, 1, 0.32, 1.25);
-            const cup = (1 - lr) * (1 - eOp * 0.5) * 0.35;
-            const pl  = baseR * (0.2 + 0.8*eOp) * (1.15 + inner*0.3) * shrink * ps;
-            let pw    = baseR * (0.15 + 0.85*eOp) * 0.55 * shrink * ps * fv;
-            pw *= (1 + cup);
-            const rPhase = i*1.7 + layer*0.9;
-            const rAmt   = b.ruffleAmt * eOp * (1 + lFall*2 + inner*0.5) * ps;
-            const la     = p.sin(angle + layer*0.5);
-            const dM     = p.map(layer, 0, b.layers, 0.35, 1.0);
-            const bB     = 0.4 + 0.6*eOp;
-            const cm     = p.map(la, -1, 1, 0.45, 1.2) * dM * bB * lm;
-            let r  = p.constrain(p.lerp(b.c1[0], b.c2[0], lr) * cm, 0, 255);
-            let gr = p.constrain(p.lerp(b.c1[1], b.c2[1], lr) * cm, 0, 255);
-            let bb = p.constrain(p.lerp(b.c1[2], b.c2[2], lr) * cm, 0, 255);
-            if (fd > 0) {
-              const wf = p.min(1, lFall * 1.3);
-              r  = p.lerp(r,  r  * 0.5 + 55, wf);
-              gr = p.lerp(gr, gr * 0.28 + 22, wf);
-              bb = p.lerp(bb, bb * 0.12 + 6,  wf);
-            }
-            items.push({ rz, kind:'p', sx, sy, sa:va, pl, pw, rPhase, rAmt, r, gr, b:bb, cup });
-          }
-        }
-
-        items.sort((a, c) => a.rz - c.rz);
-
-        for (const it of items) {
-          if (it.kind === 'c') {
-            g.push(); g.translate(cx, cy);
-            const [cnx, cny, cnz] = rotate3(0, -1, 0);
-            const cps = focal / (focal + cnz*15);
-            const csx = cnx*15*cps, csy = cny*15*cps;
-            for (let r = 28; r > 0; r -= 3) {
-              const ratio = r / 28;
-              g.fill(
-                p.lerp(b.c3[0]*0.1, b.c3[0]*0.7, ratio) * (it.alpha||1),
-                p.lerp(b.c3[1]*0.1, b.c3[1]*0.7, ratio) * (it.alpha||1),
-                p.lerp(b.c3[2]*0.1, b.c3[2]*0.7, ratio) * (it.alpha||1)
-              );
-              g.ellipse(csx, csy, r*2.2*cps, r*2.2*cps);
-            }
-            if (op > 0.65) {
-              const sa2 = p.constrain((op - 0.65) / 0.25, 0, 1) * (1 - fd);
-              for (let i = 0; i < 22; i++) {
-                const a   = (p.TWO_PI / 22) * i;
-                const d   = 6 + (i % 5) * 3;
-                const stX = p.cos(a)*d*sa2, stZ = p.sin(a)*d*sa2, stY = -3;
-                const [srx, sry, srz] = rotate3(stX, stY, stZ);
-                const stP = focal / (focal + srz);
-                g.fill(b.c2[0]*0.7, b.c2[1]*0.5, b.c2[2]*0.3, 140*sa2);
-                g.ellipse(srx*stP, sry*stP, 2.5*stP, 2.5*stP);
-              }
-            }
-            g.pop();
-
-          } else if (it.kind === 's') {
-            if (!it.sW || it.sW < 1) continue;
-            g.push(); g.translate(cx + it.sx, cy + it.sy); g.rotate(it.sa);
-            g.fill(it.sc[0]*0.7, it.sc[1]*1.0, it.sc[2]*0.6, it.sAlpha);
-            g.beginShape();
-            g.vertex(0, 0);
-            g.bezierVertex(it.sLen*0.3, -it.sW*0.6, it.sLen*0.7, -it.sW*0.4, it.sLen, 0);
-            g.bezierVertex(it.sLen*0.7,  it.sW*0.4,  it.sLen*0.3,  it.sW*0.6, 0, 0);
-            g.endShape(p.CLOSE);
-            g.pop();
-
-          } else {
-            if (!it.pw || it.pw < 0.5) continue;
-            g.push(); g.translate(cx + it.sx, cy + it.sy); g.rotate(it.sa);
-            g.fill(it.r, it.gr, it.b);
-            g.beginShape();
-            for (let tt = 0; tt <= 1; tt += 0.07) {
-              const px  = tt * it.pl;
-              const bW  = p.sin(tt * p.PI) * it.pw;
-              const cup = p.sin(tt * p.PI) * (it.cup||0) * it.pw * 0.6;
-              const ruf = p.sin(tt*8 + it.rPhase) * it.rAmt * tt;
-              g.vertex(px, bW + ruf + cup);
-            }
-            for (let tt = 1; tt >= 0; tt -= 0.07) {
-              const px  = tt * it.pl;
-              const bW  = p.sin(tt * p.PI) * it.pw;
-              const cup = p.sin(tt * p.PI) * (it.cup||0) * it.pw * 0.4;
-              const ruf = p.sin(tt*8 + it.rPhase + p.PI) * it.rAmt * tt;
-              g.vertex(px, -bW + ruf - cup);
-            }
-            g.endShape(p.CLOSE);
-            g.pop();
-          }
-        }
-      }
-
-      function rasterize() {
-        const px = frame.pixels;
-        const g  = p.max(4, p.round(cell));
-        const asciiG = p.max(g, 6);
-        const sc = p.min(p.width / FB_W, p.height / FB_H) * 0.86;
-        const invSc = 1 / sc;
-        const rW = FB_W * sc, rH = FB_H * sc;
-        const ox = (p.width  - rW) / 2 + pullX;
-        const oy = (p.height - rH) / 2 + pullY;
-        const cm = viewMode, pm = prevView, mt = viewT;
-        const tDone = mt >= 0.99;
-        const useNative = (cm === 0) || (!tDone && pm === 0);
-        if (useNative) { context.textAlign = 'center'; context.textBaseline = 'middle'; }
-        const gEff  = (cm === 0 && tDone) ? asciiG : g;
-        const halfG = gEff * 0.5;
-        const yStart = p.max(0, p.floor(oy / gEff) * gEff);
-        const yEnd   = p.min(p.height, oy + rH);
-        const xStart = p.max(0, p.floor(ox / gEff) * gEff);
-        const xEnd   = p.min(p.width, ox + rW);
-        const asciiSize = gEff * 1.15;
-        let lastFont = '';
-
-        for (let sy = yStart; sy < yEnd; sy += gEff) {
-          const byBase = p.floor((sy - oy) * invSc);
-          if (byBase < 0 || byBase >= FB_H) continue;
-          const rowOff = byBase * FB_W;
-          for (let sx = xStart; sx < xEnd; sx += gEff) {
-            const bx = p.floor((sx - ox) * invSc);
-            if (bx < 0 || bx >= FB_W) continue;
-            const idx = (rowOff + bx) * 4;
-            const r = px[idx], gr = px[idx+1], b = px[idx+2];
-            if ((r + gr + b) < 14) continue;
-            const bright = r*0.299 + gr*0.587 + b*0.114;
-            const cx = sx + halfG, cy = sy + halfG;
-            let mode;
-            if (tDone) {
-              mode = cm;
-            } else {
-              const hash = ((sx*73 + sy*137) & 0xFF) * 0.00392;
-              mode = hash < mt ? cm : pm;
-            }
-            if (mode === 0) {
-              const fz   = p.floor(asciiSize * (0.4 + bright * 0.004));
-              const fs   = fz + 'px JetBrains Mono';
-              if (fs !== lastFont) { context.font = fs; lastFont = fs; }
-              context.fillStyle = 'rgb(' + r + ',' + gr + ',' + b + ')';
-              const ci = ((bright >> 2) + ((sx*7 + sy*13) >> 3)) % glyphs.length;
-              context.fillText(glyphs[ci], cx, cy);
-            } else if (mode === 1) {
-              p.fill(r, gr, b);
-              const d = gEff * (0.1 + bright * 0.0033);
-              p.ellipse(cx, cy, d, d);
-            } else {
-              p.fill(r, gr, b);
-              p.rectMode(p.CENTER);
-              p.rect(cx, cy, gEff*0.93, gEff*0.93);
-            }
-          }
-        }
-      }
-
-      function showFps() {
-        p.fill(255, 255, 255, 36);
-        p.textSize(9);
-        p.textAlign(p.LEFT, p.TOP);
-        p.text(p.floor(p.frameRate()) + ' к/с', 10, 10);
-        p.textAlign(p.CENTER, p.CENTER);
-      }
-
-      p.mousePressed = function() {
-        if (warming) return;
-        fireBreak();
-      };
-
-      p.keyPressed = function() {
-        if (p.key === 'f' || p.key === 'F') { const fs = p.fullscreen(); p.fullscreen(!fs); }
-        if (p.key === 'g' || p.key === 'G') fireBreak();
-      };
-
-      p.windowResized = function() {
-        p.resizeCanvas(p.windowWidth, p.windowHeight);
-      };
-    };
-
-    p5Instance = new p5(sketch, document.getElementById('stage'));
-  </script>
 </body>
 </html>
