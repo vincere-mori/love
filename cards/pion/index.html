@@ -210,10 +210,10 @@
         spinPitch += dt * 0.11 * p.sin(clock * 0.16) * re;
         spinRoll  += dt * 0.07 * p.sin(clock * 0.10 + 1.7) * re;
 
-        aimPitch = (p.mouseY - p.height / 2) / p.height * 1.15;
-        aimYaw   = (p.mouseX - p.width  / 2) / p.width  * 1.7;
-        curPitch += (aimPitch - curPitch) * 0.045;
-        curYaw   += (aimYaw   - curYaw)   * 0.045;
+        aimPitch = (p.mouseY - p.height / 2) / p.height * 1.6;
+        aimYaw   = (p.mouseX - p.width  / 2) / p.width  * 2.4;
+        curPitch += (aimPitch - curPitch) * 0.14;
+        curYaw   += (aimYaw   - curYaw)   * 0.14;
 
         rotPitch = spinPitch + curPitch * re;
         rotYaw   = spinYaw   + curYaw   * re;
@@ -269,7 +269,11 @@
 
         paintBloomToBuffer(b, openAmt, fade);
 
-        rasterize();
+        const sc = p.min(p.width / FB_W, p.height / FB_H) * 0.86;
+        const rW = FB_W * sc, rH = FB_H * sc;
+        const ox = (p.width  - rW) / 2 + pullX;
+        const oy = (p.height - rH) / 2 + pullY;
+        p.image(frame, ox, oy, rW, rH);
         showFps();
       };
 
