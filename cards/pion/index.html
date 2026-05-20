@@ -228,9 +228,8 @@
         cellTimer += dt;
         if (cellTimer > MODE_INTERVAL) {
           cellTimer = 0;
-          fireBreak();
           prevView = viewMode;
-          viewMode = (viewMode + 1) % 3;
+          viewMode = (viewMode + 1) % 2;
           viewT    = 0;
           if (cellDir === 1) { cellTarget = CELL_MAX; cellDir = -1; }
           else               { cellTarget = CELL_MIN; cellDir =  1; }
@@ -238,7 +237,7 @@
 
         if (stage === 'live') {
           stageT += dt;
-          if (stageT > 26) { stage = 'fading'; stageT = 0; fireBreak(); }
+          if (stageT > 26) { stage = 'fading'; stageT = 0; }
         }
 
         if (stage === 'fading') {
@@ -251,17 +250,14 @@
           stageT += dt;
           if (stageT > 0.55) {
             prevView = viewMode;
-            viewMode = (viewMode + 1) % 3;
+            viewMode = (viewMode + 1) % 2;
             viewT    = 0;
-            fireBreak();
             startBloom((activeIdx + 1) % blooms.length);
           }
         }
 
         cell   += (cellTarget - cell) * 0.085;
         viewT   = p.min(1, viewT + dt * 4.2);
-
-        stepBreak(dt);
 
         if (stage === 'live') {
           pullX += ((p.mouseX - p.width  / 2) * 0.07 - pullX) * 0.045;
@@ -273,14 +269,7 @@
 
         paintBloomToBuffer(b, openAmt, fade);
 
-        breakTimer -= dt;
-        if (breakTimer <= 0 && !breakOn) {
-          breakTimer = p.random(3.2, 7.5);
-          if (p.random() < 0.42) fireBreak();
-        }
-
         rasterize();
-        paintBreak();
         showFps();
       };
 
@@ -664,14 +653,8 @@
         p.textAlign(p.CENTER, p.CENTER);
       }
 
-      p.mousePressed = function() {
-        if (warming) return;
-        fireBreak();
-      };
-
       p.keyPressed = function() {
         if (p.key === 'f' || p.key === 'F') { const fs = p.fullscreen(); p.fullscreen(!fs); }
-        if (p.key === 'g' || p.key === 'G') fireBreak();
       };
 
       p.windowResized = function() {
