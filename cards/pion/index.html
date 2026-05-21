@@ -192,15 +192,15 @@
         spinYaw  += dt * 0.28 * re + scrollSpin;
         scrollSpin *= 0.88;
         // oscillate pitch/roll — не накапливаются, цветок не переворачивается
-        const autoPitch = 0.22 * p.sin(clock * 0.16) * re;
+        const autoPitch = 0.13 * p.sin(clock * 0.16) * re;
         const autoRoll  = 0.10 * p.sin(clock * 0.10 + 1.5) * re;
 
-        const aimPitch = (p.mouseY - p.height / 2) / p.height * 1.6;
+        const aimPitch = (p.mouseY - p.height / 2) / p.height * 0.9;
         const aimYaw   = (p.mouseX - p.width  / 2) / p.width  * 2.4;
         curPitch += (aimPitch - curPitch) * 0.14;
         curYaw   += (aimYaw   - curYaw)   * 0.14;
 
-        rotPitch = p.constrain(autoPitch + curPitch * re, -0.48, 0.48);
+        rotPitch = p.constrain(autoPitch + curPitch * re, -0.22, 0.26);
         rotYaw   = spinYaw + curYaw * re;
         rotRoll  = autoRoll;
 
