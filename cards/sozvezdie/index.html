@@ -19,10 +19,20 @@
     .caption .name { font-size: clamp(28px, 5vw, 56px); letter-spacing: 8px; font-weight: 300; opacity: 0; transition: opacity 2s ease 2s; }
     .caption .sub  { font-size: clamp(11px, 1.3vw, 14px); letter-spacing: 4px; color: #8a8294; margin-top: 14px; opacity: 0; transition: opacity 2s ease 3.2s; text-transform: uppercase; }
     body.ready .caption .name, body.ready .caption .sub { opacity: 1; }
+    .hint {
+      position: fixed; left: 0; right: 0; top: 5%;
+      text-align: center; color: #2e2a3a;
+      font-family: 'JetBrains Mono', 'Courier New', monospace;
+      font-size: 11px; letter-spacing: 3px; text-transform: uppercase;
+      pointer-events: none; z-index: 5;
+      opacity: 0; transition: opacity 2s ease 5s;
+    }
+    body.ready .hint { opacity: 1; }
   </style>
 </head>
 <body>
   <div id="stage"></div>
+  <div class="hint">мышь — параллакс · клик — звёздный дождь</div>
   <div class="caption">
     <div class="name" id="nm"></div>
     <div class="sub" id="sb"></div>

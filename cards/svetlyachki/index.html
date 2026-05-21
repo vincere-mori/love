@@ -7,173 +7,142 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.3/p5.min.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      background: radial-gradient(ellipse at 50% 30%, #0e1820 0%, #060a0e 60%, #03050a 100%);
-      overflow: hidden; height: 100vh; width: 100vw;
-    }
+    body { background: #04080e; overflow: hidden; height: 100vh; width: 100vw; }
     canvas { display: block; }
     #stage { width: 100%; height: 100%; }
     .caption {
       position: fixed; left: 0; right: 0; bottom: 8%;
       text-align: center;
-      color: #e8e4cd;
       font-family: 'Cormorant Garamond', 'Georgia', serif;
-      letter-spacing: 6px;
-      font-size: clamp(14px, 1.6vw, 18px);
-      text-transform: uppercase;
-      pointer-events: none;
-      opacity: 0;
-      transition: opacity 2.4s ease 1.4s;
+      pointer-events: none; z-index: 5;
     }
-    body.ready .caption { opacity: 0.85; }
+    .caption .name {
+      color: #e8dfb8;
+      font-size: clamp(26px, 4.5vw, 52px);
+      letter-spacing: 7px; font-weight: 300;
+      opacity: 0; transition: opacity 2.5s ease 1.5s;
+    }
+    .caption .sub {
+      margin-top: 10px; color: #7a7050;
+      font-size: clamp(11px, 1.3vw, 14px);
+      letter-spacing: 4px; font-style: italic;
+      opacity: 0; transition: opacity 2s ease 2.8s;
+    }
+    body.ready .caption .name,
+    body.ready .caption .sub { opacity: 1; }
     .hint {
-      position: fixed; left: 0; right: 0; top: 6%;
-      text-align: center;
-      color: #4d5560;
-      font-family: 'Cormorant Garamond', 'Georgia', serif;
-      letter-spacing: 3px;
-      font-size: 11px;
-      text-transform: uppercase;
+      position: fixed; left: 0; right: 0; top: 5%;
+      text-align: center; color: #3a3820;
+      font-family: 'JetBrains Mono', 'Courier New', monospace;
+      font-size: 11px; letter-spacing: 3px; text-transform: uppercase;
       pointer-events: none;
-      opacity: 0;
-      transition: opacity 2s ease 2.6s;
+      opacity: 0; transition: opacity 2s ease 4s;
     }
-    body.ready .hint { opacity: 0.7; }
+    body.ready .hint { opacity: 1; }
   </style>
 </head>
 <body>
   <div id="stage"></div>
-  <div class="hint">наведи · нажми</div>
-  <div class="caption" id="cap"></div>
+  <div class="hint">мышь — притягивает · клик — собрать в сердце</div>
+  <div class="caption">
+    <div class="name" id="nm"></div>
+    <div class="sub"  id="sb"></div>
+  </div>
   <script>
     const params = new URLSearchParams(location.search);
-    const TEXT = params.get('text') || params.get('name') || 'тёплый июльский вечер';
-    document.getElementById('cap').textContent = TEXT;
-    setTimeout(() => document.body.classList.add('ready'), 200);
+    document.getElementById('nm').textContent = params.get('name') || 'июльский вечер';
+    document.getElementById('sb').textContent = params.get('text') || 'ты светишься';
+    setTimeout(() => document.body.classList.add('ready'), 300);
 
     const sketch = (p) => {
-      const N = 90;
+      const N = 80;
       let bugs = [];
-      let stars = [];
-      let grass = [];
-      let toHeart = 0;
+      let heartMode = false;
+      let heartTimer = 0;
       let t = 0;
-      let mx = -9999, my = -9999;
+      let noiseOff = 0;
 
-      function heartXY(a) {
-        return {
-          x: 16 * Math.pow(p.sin(a), 3),
-          y: -(13 * p.cos(a) - 5 * p.cos(2*a) - 2 * p.cos(3*a) - p.cos(4*a))
-        };
+      function heartXY(i, total, scale) {
+        const a = (p.TWO_PI / total) * i - p.HALF_PI;
+        const x = 16 * Math.pow(p.sin(a), 3);
+        const y = -(13 * p.cos(a) - 5 * p.cos(2*a) - 2 * p.cos(3*a) - p.cos(4*a));
+        return { x: p.width/2 + x * scale, y: p.height/2 + y * scale + p.height * 0.04 };
       }
 
       p.setup = () => {
         p.createCanvas(p.windowWidth, p.windowHeight);
         p.noStroke();
         for (let i = 0; i < N; i++) {
-          const a = (i / N) * p.TWO_PI;
-          const xy = heartXY(a);
-          const scale = p.min(p.width, p.height) * 0.022;
           bugs.push({
-            x: p.random(p.width),
-            y: p.random(p.height * 0.85),
-            vx: p.random(-12, 12),
-            vy: p.random(-8, 8),
-            hx: p.width / 2 + xy.x * scale,
-            hy: p.height / 2 + xy.y * scale - 30,
-            phase: p.random(p.TWO_PI),
-            speed: p.random(1.2, 2.8),
-            hue: p.random(),
-            size: p.random(1.2, 2.6),
-            n0: p.random(1000)
+            x: p.random(p.width), y: p.random(p.height * 0.1, p.height * 0.85),
+            vx: p.random(-18, 18), vy: p.random(-12, 12),
+            phase: p.random(p.TWO_PI), pulseSpeed: p.random(1.2, 2.6),
+            hue: p.random(0.8, 1.0), size: p.random(1.8, 4.2),
+            noiseX: p.random(1000), noiseY: p.random(1000),
+            heartX: 0, heartY: 0
           });
         }
-        for (let i = 0; i < 80; i++) {
-          stars.push({ x: p.random(p.width), y: p.random(p.height * 0.5),
-                       r: p.random(0.3, 1.1), tw: p.random(p.TWO_PI), sp: p.random(0.6, 1.8) });
-        }
-        for (let i = 0; i < 140; i++) {
-          grass.push({
-            x: p.random(p.width),
-            h: p.random(22, 70),
-            phase: p.random(p.TWO_PI),
-            sway: p.random(0.3, 1.1)
-          });
-        }
+        recalcHeart();
       };
+
+      function recalcHeart() {
+        const scale = p.min(p.width, p.height) * 0.028;
+        bugs.forEach((b, i) => { const h = heartXY(i, N, scale); b.heartX = h.x; b.heartY = h.y; });
+      }
 
       p.draw = () => {
         const dt = p.deltaTime / 1000;
-        t += dt;
-        p.background(3, 5, 10, 50);
+        t += dt; noiseOff += dt * 0.08;
+        p.background(4, 8, 14, 40);
 
-        for (const s of stars) {
-          const a = 0.5 + 0.5 * p.sin(t * s.sp + s.tw);
-          p.fill(220, 220, 240, 140 * a);
-          p.circle(s.x, s.y, s.r);
+        p.fill(5, 13, 9, 200);
+        p.beginShape();
+        p.vertex(0, p.height);
+        for (let x = 0; x <= p.width; x += 16) {
+          const sw = p.sin(x * 0.04 + t * 0.3) * 10 + p.sin(x * 0.07 - t * 0.2) * 6;
+          p.vertex(x, p.height - p.height * 0.1 * (0.4 + 0.6 * p.noise(x * 0.008)) + sw * 0.5);
         }
+        p.vertex(p.width, p.height);
+        p.endShape(p.CLOSE);
 
-        toHeart = p.max(0, toHeart - dt * 0.4);
+        heartTimer = p.max(0, heartTimer - dt);
+        if (heartTimer <= 0) heartMode = false;
 
-        for (const f of bugs) {
-          const targetX = f.hx, targetY = f.hy;
-          if (toHeart > 0.01) {
-            const k = toHeart;
-            f.vx += (targetX - f.x) * 0.06 * k;
-            f.vy += (targetY - f.y) * 0.06 * k;
+        for (const b of bugs) {
+          if (heartMode) {
+            const dx = b.heartX - b.x, dy = b.heartY - b.y;
+            b.vx += dx * 0.08; b.vy += dy * 0.08;
+            b.vx *= 0.78; b.vy *= 0.78;
           } else {
-            const n = p.noise(f.x * 0.0015, f.y * 0.0015, f.n0 + t * 0.08);
-            const ang = n * p.TWO_PI * 2;
-            f.vx += p.cos(ang) * 6 * dt;
-            f.vy += (p.sin(ang) * 6 - 1.2) * dt;
-            if (mx > -1000) {
-              const dx = mx - f.x, dy = my - f.y;
-              const d2 = dx*dx + dy*dy;
-              if (d2 < 200*200 && d2 > 1) {
-                const inv = 1 / Math.sqrt(d2);
-                const pull = (1 - Math.sqrt(d2) / 200) * 60;
-                f.vx += dx * inv * pull * dt;
-                f.vy += dy * inv * pull * dt;
-              }
-            }
+            const flowA = p.noise(b.noiseX + noiseOff) * p.TWO_PI * 2;
+            b.vx += p.cos(flowA) * 0.8;
+            b.vy += p.sin(flowA) * 0.8 - 0.15;
+            const mdx = p.mouseX - b.x, mdy = p.mouseY - b.y;
+            const md = Math.sqrt(mdx*mdx + mdy*mdy) + 1;
+            if (md < 160) { b.vx += mdx / md * 0.9; b.vy += mdy / md * 0.9; }
+            b.vx *= 0.94; b.vy *= 0.94;
           }
-          f.vx *= 0.96; f.vy *= 0.96;
-          f.x += f.vx * dt * 12;
-          f.y += f.vy * dt * 12;
-          if (f.x < -20) f.x = p.width + 20;
-          if (f.x > p.width + 20) f.x = -20;
-          if (f.y < -20) f.y = p.height + 20;
-          if (f.y > p.height + 20) f.y = -20;
+          b.vx = p.constrain(b.vx, -60, 60);
+          b.vy = p.constrain(b.vy, -60, 60);
+          b.x += b.vx * dt; b.y += b.vy * dt;
+          if (b.x < -20) b.x = p.width + 20;
+          if (b.x > p.width + 20) b.x = -20;
+          b.y = p.constrain(b.y, -20, p.height * 0.88);
 
-          const pulse = 0.4 + 0.6 * (0.5 + 0.5 * p.sin(t * f.speed + f.phase));
-          const r = p.lerp(255, 235, f.hue);
-          const g = p.lerp(220, 180, f.hue);
-          const b = p.lerp(100, 80, f.hue);
-          p.fill(r, g, b, 30 * pulse);
-          p.circle(f.x, f.y, f.size * 22 * pulse);
-          p.fill(r, g, b, 90 * pulse);
-          p.circle(f.x, f.y, f.size * 10 * pulse);
-          p.fill(255, 245, 200, 230 * pulse);
-          p.circle(f.x, f.y, f.size * 2.4);
+          const pulse = 0.55 + 0.45 * p.sin(t * b.pulseSpeed + b.phase);
+          const r = p.lerp(190, 255, b.hue);
+          const g = p.lerp(210, 255, b.hue);
+          const bv = p.lerp(60, 130, b.hue);
+          p.fill(r, g, bv, 220 * pulse);   p.circle(b.x, b.y, b.size);
+          p.fill(r, g, bv, 55 * pulse);    p.circle(b.x, b.y, b.size * 5.5);
+          p.fill(r, g, bv, 14 * pulse);    p.circle(b.x, b.y, b.size * 14);
         }
-
-        const groundY = p.height - 12;
-        for (const gr of grass) {
-          const wave = p.sin(t * gr.sway + gr.phase) * 4;
-          p.stroke(8, 14, 10);
-          p.strokeWeight(1.2);
-          p.line(gr.x, groundY, gr.x + wave, groundY - gr.h);
-          p.noStroke();
-        }
-        p.fill(2, 5, 8);
-        p.rect(0, groundY - 1, p.width, 14);
       };
 
-      p.mouseMoved = () => { mx = p.mouseX; my = p.mouseY; };
-      p.mouseDragged = () => { mx = p.mouseX; my = p.mouseY; };
-      p.mousePressed = () => { toHeart = 1; };
-      p.windowResized = () => p.resizeCanvas(p.windowWidth, p.windowHeight);
+      p.mousePressed = () => { heartMode = true; heartTimer = 3.5; recalcHeart(); };
+      p.windowResized  = () => { p.resizeCanvas(p.windowWidth, p.windowHeight); recalcHeart(); };
     };
+
     new p5(sketch, document.getElementById('stage'));
   </script>
 </body>
