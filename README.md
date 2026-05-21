@@ -10,23 +10,23 @@
 
 | Открытка | Что происходит |
 |---|---|
-| [пион](cards/pion/) | 3D-пион распускается и увядает. Мышь поворачивает в пространстве, колесо — раскручивает. |
-| [созвездие](cards/sozvezdie/) | Звёздное небо, из звёзд складывается сердце, под ним — имя. Падающие звёзды по клику. |
-| [сердце](cards/serdtse/) | ~2400 частиц в форме сердца, пульсирует, поворачивается. По клику рассыпается и собирается обратно. |
-| [письмо](cards/pismo/) | Бумажное письмо разворачивается, строки проявляются по очереди, в углу — сургучная печать. Пыль в луче света. |
-| [светлячки](cards/svetlyachki/) | Тёплый июльский вечер: светлячки летают по полю, тянутся к курсору, по клику собираются в сердце. |
-| [часы](cards/chasy/) | Циферблат из лент, в центре — имя и дата (для годовщины, например). |
+| [пион](https://vincere-mori.github.io/love/cards/pion/) | 3D-пион распускается и увядает. Мышь поворачивает в пространстве, колесо — раскручивает. |
+| [созвездие](https://vincere-mori.github.io/love/cards/sozvezdie/) | Звёздное небо, из звёзд складывается сердце, под ним — имя. Падающие звёзды по клику. |
+| [сердце](https://vincere-mori.github.io/love/cards/serdtse/) | ~2400 частиц в форме сердца, пульсирует, поворачивается. По клику рассыпается и собирается обратно. |
+| [письмо](https://vincere-mori.github.io/love/cards/pismo/) | Бумажное письмо разворачивается, строки проявляются по очереди, в углу — сургучная печать. Пыль в луче света. |
+| [светлячки](https://vincere-mori.github.io/love/cards/svetlyachki/) | Тёплый июльский вечер: светлячки летают по полю, тянутся к курсору, по клику собираются в сердце. |
+| [часы](https://vincere-mori.github.io/love/cards/chasy/) | Циферблат из лент, в центре — имя и дата (для годовщины, например). |
 
 ## Как послать своей
 
 Просто докинь параметры в URL:
 
 ```
-.../cards/sozvezdie/?name=Аня&text=моё небо
-.../cards/serdtse/?text=для тебя
-.../cards/pismo/?name=Милая&text=строка раз|строка два|строка три&sign=твой С.
-.../cards/svetlyachki/?name=Аня&text=наш июльский вечер
-.../cards/chasy/?name=Аня и Саша&date=14 февраля 2024&text=наша вечность
+.../https://vincere-mori.github.io/love/cards/sozvezdie/?name=Аня&text=моё небо
+.../https://vincere-mori.github.io/love/cards/serdtse/?text=для тебя
+.../https://vincere-mori.github.io/love/cards/pismo/?name=Милая&text=строка раз|строка два|строка три&sign=твой С.
+.../https://vincere-mori.github.io/love/cards/svetlyachki/?name=Аня&text=наш июльский вечер
+.../https://vincere-mori.github.io/love/cards/chasy/?name=Аня и Саша&date=14 февраля 2024&text=наша вечность
 ```
 
 В письме строки разделяются `|`. Кириллица и пробелы — нормально (браузер сам закодирует), но если пересылаешь в мессенджере, лучше просто скопировать готовую ссылку из адресной строки.
@@ -73,23 +73,23 @@ Six generative cards built with p5.js. A peony blooms, fireflies drift, a letter
 
 | Card | What it does |
 |---|---|
-| [peony](cards/pion/) | 3D peony blooms and wilts. Mouse rotates it, scroll wheel spins it. |
-| [constellation](cards/sozvezdie/) | Stars form a heart with a name beneath. Click for a shooting star shower. |
-| [heart](cards/serdtse/) | ~2400 particles pulsing in a heart shape. Mouse rotates, click — it shatters and reforms. |
-| [letter](cards/pismo/) | A paper letter unfolds, lines appear one by one, sealed with wax. Dust in a beam of light. |
-| [fireflies](cards/svetlyachki/) | Warm July evening: fireflies drift, follow the cursor, click — they form a heart. |
-| [clock](cards/chasy/) | A ribbon clock dial with a name and date in the center. Great for anniversaries. |
+| [peony](https://vincere-mori.github.io/love/cards/pion/) | 3D peony blooms and wilts. Mouse rotates it, scroll wheel spins it. |
+| [constellation](https://vincere-mori.github.io/love/cards/sozvezdie/) | Stars form a heart with a name beneath. Click for a shooting star shower. |
+| [heart](https://vincere-mori.github.io/love/cards/serdtse/) | ~2400 particles pulsing in a heart shape. Mouse rotates, click — it shatters and reforms. |
+| [letter](https://vincere-mori.github.io/love/cards/pismo/) | A paper letter unfolds, lines appear one by one, sealed with wax. Dust in a beam of light. |
+| [fireflies](https://vincere-mori.github.io/love/cards/svetlyachki/) | Warm July evening: fireflies drift, follow the cursor, click — they form a heart. |
+| [clock](https://vincere-mori.github.io/love/cards/chasy/) | A ribbon clock dial with a name and date in the center. Great for anniversaries. |
 
 ## Send it to her
 
 Add parameters to the URL:
 
 ```
-.../cards/sozvezdie/?name=Anna&text=my sky
-.../cards/serdtse/?text=for you
-.../cards/pismo/?name=Dear&text=Line one|Line two|Line three&sign=yours
-.../cards/svetlyachki/?name=Anna&text=our July evening
-.../cards/chasy/?name=Anna %26 Sasha&date=February 14 2024&text=our eternity
+.../https://vincere-mori.github.io/love/cards/sozvezdie/?name=Anna&text=my sky
+.../https://vincere-mori.github.io/love/cards/serdtse/?text=for you
+.../https://vincere-mori.github.io/love/cards/pismo/?name=Dear&text=Line one|Line two|Line three&sign=yours
+.../https://vincere-mori.github.io/love/cards/svetlyachki/?name=Anna&text=our July evening
+.../https://vincere-mori.github.io/love/cards/chasy/?name=Anna %26 Sasha&date=February 14 2024&text=our eternity
 ```
 
 Separate letter lines with `|`. Just copy the URL from the address bar — browser handles encoding. Everything is static, nothing is sent to a server.
