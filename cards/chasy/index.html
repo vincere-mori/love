@@ -48,6 +48,7 @@
 </head>
 <body>
   <div id="stage"></div>
+  <div style="position:fixed;left:0;right:0;top:5%;text-align:center;color:#2a2838;font-family:'JetBrains Mono','Courier New',monospace;font-size:11px;letter-spacing:3px;text-transform:uppercase;pointer-events:none;z-index:5;opacity:0;transition:opacity 2s ease 3.5s;" id="ch-hint">каждую секунду — всё ближе к тебе</div>
   <div class="center">
     <div class="nm" id="nm"></div>
     <div class="dt" id="dt"></div>
@@ -62,6 +63,7 @@
     document.getElementById('dt').textContent = DATE;
     document.getElementById('nb').textContent = NOTE;
     setTimeout(() => document.body.classList.add('ready'), 300);
+    setTimeout(() => { const h = document.getElementById('ch-hint'); if(h) h.style.opacity='1'; }, 3500);
 
     const sketch = (p) => {
       const N = 22;

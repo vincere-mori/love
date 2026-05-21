@@ -75,7 +75,9 @@
     <div class="signature" id="sig"></div>
     <div class="seal">L</div>
   </div>
+  <div style="position:fixed;left:0;right:0;top:5%;text-align:center;color:#3a2a10;font-family:'JetBrains Mono','Courier New',monospace;font-size:11px;letter-spacing:3px;text-transform:uppercase;pointer-events:none;z-index:10;opacity:0;transition:opacity 2s ease 6s;" id="pm-hint">подожди — письмо само раскроется</div>
   <script>
+    setTimeout(() => document.getElementById('pm-hint').style.opacity = '1', 100);
     const params = new URLSearchParams(location.search);
     const NAME = params.get('name') || 'Милая';
     const TEXT = params.get('text') || 'Каждый раз, когда я закрываю глаза, я вижу твою улыбку.|Ты — моё тихое утро и моё громкое сердце.|Это маленькое письмо, чтобы ты знала.';

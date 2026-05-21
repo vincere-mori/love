@@ -64,11 +64,22 @@
       margin-top: 12px;
       letter-spacing: 2px;
     }
+
+    .hint {
+      position: fixed; left: 0; right: 0; top: 5%;
+      text-align: center; color: #3a2e3e;
+      font-family: 'JetBrains Mono', 'Courier New', monospace;
+      font-size: 11px; letter-spacing: 3px; text-transform: uppercase;
+      pointer-events: none; z-index: 5;
+      opacity: 0; transition: opacity 2s ease 4s;
+    }
+    body.ready .hint { opacity: 1; }
   </style>
 </head>
 <body>
 
   <div id="stage"></div>
+  <div class="hint">мышь — поворот · колесо — раскрутить · F — полный экран</div>
 
   <div id="intro">
     <div class="label">ЦВЕТЕНИЕ</div>
@@ -92,6 +103,7 @@
       if (introTimerDone && warmupDone) {
         if (p5Instance) p5Instance.beginScene();
         introEl.classList.add('hide');
+        setTimeout(() => document.body.classList.add('ready'), 1000);
       }
     }
 
@@ -127,6 +139,7 @@
       let curPitch = 0, curYaw = 0;
       let aimPitch = 0, aimYaw = 0;
       let easeRot = 0;
+      let scrollSpin = 0;
 
       let warming   = true;
       let warmCount = 0;
@@ -151,10 +164,6 @@
 
         frame = p.createGraphics(FB_W, FB_H);
         frame.pixelDensity(1);
-        frame.noSmooth();
-        frame.canvas.getContext('2d', { willReadFrequently: true });
-
-        context = p.drawingContext;
 
         blooms = [
           { c1:[215,115,165], c2:[252,205,228], c3:[155,55,105], stemC:[58,90,44], layers:15, petalsPerLayer:10, maxRadius:160, ruffleAmt:13, sepals:5 },
@@ -206,7 +215,8 @@
         easeRot = p.min(1, easeRot + dt * 0.09);
         const re = easeInOutCubic(easeRot);
 
-        spinYaw   += dt * 0.28 * re;
+        spinYaw   += dt * 0.28 * re + scrollSpin;
+        scrollSpin *= 0.88;
         spinPitch += dt * 0.11 * p.sin(clock * 0.16) * re;
         spinRoll  += dt * 0.07 * p.sin(clock * 0.10 + 1.7) * re;
 
@@ -225,16 +235,6 @@
           if (openAmt > 0.98) { openAmt = 1; stage = 'live'; stageT = 0; }
         }
 
-        cellTimer += dt;
-        if (cellTimer > MODE_INTERVAL) {
-          cellTimer = 0;
-          prevView = viewMode;
-          viewMode = (viewMode + 1) % 2;
-          viewT    = 0;
-          if (cellDir === 1) { cellTarget = CELL_MAX; cellDir = -1; }
-          else               { cellTarget = CELL_MIN; cellDir =  1; }
-        }
-
         if (stage === 'live') {
           stageT += dt;
           if (stageT > 26) { stage = 'fading'; stageT = 0; }
@@ -248,16 +248,8 @@
 
         if (stage === 'pause') {
           stageT += dt;
-          if (stageT > 0.55) {
-            prevView = viewMode;
-            viewMode = (viewMode + 1) % 2;
-            viewT    = 0;
-            startBloom((activeIdx + 1) % blooms.length);
-          }
+          if (stageT > 0.55) startBloom((activeIdx + 1) % blooms.length);
         }
-
-        cell   += (cellTarget - cell) * 0.085;
-        viewT   = p.min(1, viewT + dt * 4.2);
 
         if (stage === 'live') {
           pullX += ((p.mouseX - p.width  / 2) * 0.07 - pullX) * 0.045;
@@ -340,7 +332,6 @@
         const cy = FB_H * 0.38 + droop;
         paintStem(frame, b, stemProgress, fd, cx, cy);
         paintPetals(frame, b, bloomVal, fd, cx, cy);
-        frame.loadPixels();
       }
 
       function paintStem(g, b, progress, fd, cx, cy) {
@@ -656,6 +647,11 @@
         p.text(p.floor(p.frameRate()) + ' к/с', 10, 10);
         p.textAlign(p.CENTER, p.CENTER);
       }
+
+      p.mouseWheel = function(e) {
+        scrollSpin += e.delta * 0.0025;
+        return false;
+      };
 
       p.keyPressed = function() {
         if (p.key === 'f' || p.key === 'F') { const fs = p.fullscreen(); p.fullscreen(!fs); }
