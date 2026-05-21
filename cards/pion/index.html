@@ -112,45 +112,25 @@
     const sketch = function(p) {
       const FB_W = 720, FB_H = 720;
       let frame;
-      const glyphs = 'АБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ0123456789@#%&*'.split('');
-      let context;
 
       let blooms = [];
       let activeIdx = 0;
 
-      let stage   = 'opening';
-      let stageT  = 0;
-
-      let openAmt    = 0;
-      let openTarget = 1;
-
-      let viewMode = 0, prevView = 0, viewT = 1;
-
-      let cell = 4, cellTarget = 4;
-      const CELL_MIN = 4, CELL_MAX = 22;
-      const MODE_INTERVAL = 0.95;
-      let cellDir = 1, cellTimer = 0;
-
+      let stage = 'opening', stageT = 0;
+      let openAmt = 0, openTarget = 1;
       let pullX = 0, pullY = 0;
       let clock = 0;
 
       let rotPitch = 0, rotYaw = 0, rotRoll = 0;
-      let spinPitch = 0, spinYaw = 0, spinRoll = 0;
+      let spinYaw = 0, spinRoll = 0;
       let curPitch = 0, curYaw = 0;
-      let aimPitch = 0, aimYaw = 0;
       let easeRot = 0;
       let scrollSpin = 0;
 
-      let warming   = true;
-      let warmCount = 0;
+      let warming = true, warmCount = 0;
       const WARM_NEED = 60;
 
-      let breakTimer  = 0;
-      let breakOn     = false;
-      let breakAmt    = 0;
-      let breakBands  = [];
-
-      let fade   = 0;
+      let fade = 0;
 
       const easeInOutCubic = x => x < 0.5 ? 4*x*x*x : 1 - p.pow(-2*x+2, 3) / 2;
       const easeOutQuart   = x => 1 - p.pow(1 - x, 4);
@@ -158,8 +138,7 @@
       p.setup = function() {
         p.createCanvas(p.windowWidth, p.windowHeight);
         p.pixelDensity(1);
-        p.textFont('JetBrains Mono, Courier New, monospace');
-        p.textAlign(p.CENTER, p.CENTER);
+        p.frameRate(60);
         p.noStroke();
 
         frame = p.createGraphics(FB_W, FB_H);
@@ -181,11 +160,6 @@
         fade       = 0;
         stage      = 'opening';
         stageT     = 0;
-        cell       = CELL_MIN;
-        cellTarget = CELL_MIN;
-        cellDir    = 1;
-        cellTimer  = 0;
-        viewT      = 1;
       }
 
       p.beginScene = function() { warming = false; };
@@ -215,19 +189,20 @@
         easeRot = p.min(1, easeRot + dt * 0.09);
         const re = easeInOutCubic(easeRot);
 
-        spinYaw   += dt * 0.28 * re + scrollSpin;
+        spinYaw  += dt * 0.28 * re + scrollSpin;
         scrollSpin *= 0.88;
-        spinPitch += dt * 0.11 * p.sin(clock * 0.16) * re;
-        spinRoll  += dt * 0.07 * p.sin(clock * 0.10 + 1.7) * re;
+        // oscillate pitch/roll — не накапливаются, цветок не переворачивается
+        const autoPitch = 0.22 * p.sin(clock * 0.16) * re;
+        const autoRoll  = 0.10 * p.sin(clock * 0.10 + 1.5) * re;
 
-        aimPitch = (p.mouseY - p.height / 2) / p.height * 1.6;
-        aimYaw   = (p.mouseX - p.width  / 2) / p.width  * 2.4;
+        const aimPitch = (p.mouseY - p.height / 2) / p.height * 1.6;
+        const aimYaw   = (p.mouseX - p.width  / 2) / p.width  * 2.4;
         curPitch += (aimPitch - curPitch) * 0.14;
         curYaw   += (aimYaw   - curYaw)   * 0.14;
 
-        rotPitch = spinPitch + curPitch * re;
-        rotYaw   = spinYaw   + curYaw   * re;
-        rotRoll  = spinRoll;
+        rotPitch = p.constrain(autoPitch + curPitch * re, -0.48, 0.48);
+        rotYaw   = spinYaw + curYaw * re;
+        rotRoll  = autoRoll;
 
         if (stage === 'opening') {
           openAmt += (openTarget - openAmt) * 0.0065;
@@ -559,14 +534,14 @@
             g.push(); g.translate(cx + it.sx, cy + it.sy); g.rotate(it.sa);
             g.fill(it.r, it.gr, it.b);
             g.beginShape();
-            for (let tt = 0; tt <= 1; tt += 0.07) {
+            for (let tt = 0; tt <= 1; tt += 0.12) {
               const px  = tt * it.pl;
               const bW  = p.sin(tt * p.PI) * it.pw;
               const cup = p.sin(tt * p.PI) * (it.cup||0) * it.pw * 0.6;
               const ruf = p.sin(tt*8 + it.rPhase) * it.rAmt * tt;
               g.vertex(px, bW + ruf + cup);
             }
-            for (let tt = 1; tt >= 0; tt -= 0.07) {
+            for (let tt = 1; tt >= 0; tt -= 0.12) {
               const px  = tt * it.pl;
               const bW  = p.sin(tt * p.PI) * it.pw;
               const cup = p.sin(tt * p.PI) * (it.cup||0) * it.pw * 0.4;
@@ -575,67 +550,6 @@
             }
             g.endShape(p.CLOSE);
             g.pop();
-          }
-        }
-      }
-
-      function rasterize() {
-        const px = frame.pixels;
-        const g  = p.max(4, p.round(cell));
-        const asciiG = p.max(g, 6);
-        const sc = p.min(p.width / FB_W, p.height / FB_H) * 0.86;
-        const invSc = 1 / sc;
-        const rW = FB_W * sc, rH = FB_H * sc;
-        const ox = (p.width  - rW) / 2 + pullX;
-        const oy = (p.height - rH) / 2 + pullY;
-        const cm = viewMode, pm = prevView, mt = viewT;
-        const tDone = mt >= 0.99;
-        const useNative = (cm === 0) || (!tDone && pm === 0);
-        if (useNative) { context.textAlign = 'center'; context.textBaseline = 'middle'; }
-        const gEff  = (cm === 0 && tDone) ? asciiG : g;
-        const halfG = gEff * 0.5;
-        const yStart = p.max(0, p.floor(oy / gEff) * gEff);
-        const yEnd   = p.min(p.height, oy + rH);
-        const xStart = p.max(0, p.floor(ox / gEff) * gEff);
-        const xEnd   = p.min(p.width, ox + rW);
-        const asciiSize = gEff * 1.15;
-        let lastFont = '';
-
-        for (let sy = yStart; sy < yEnd; sy += gEff) {
-          const byBase = p.floor((sy - oy) * invSc);
-          if (byBase < 0 || byBase >= FB_H) continue;
-          const rowOff = byBase * FB_W;
-          for (let sx = xStart; sx < xEnd; sx += gEff) {
-            const bx = p.floor((sx - ox) * invSc);
-            if (bx < 0 || bx >= FB_W) continue;
-            const idx = (rowOff + bx) * 4;
-            const r = px[idx], gr = px[idx+1], b = px[idx+2];
-            if ((r + gr + b) < 14) continue;
-            const bright = r*0.299 + gr*0.587 + b*0.114;
-            const cx = sx + halfG, cy = sy + halfG;
-            let mode;
-            if (tDone) {
-              mode = cm;
-            } else {
-              const hash = ((sx*73 + sy*137) & 0xFF) * 0.00392;
-              mode = hash < mt ? cm : pm;
-            }
-            if (mode === 0) {
-              const fz   = p.floor(asciiSize * (0.4 + bright * 0.004));
-              const fs   = fz + 'px JetBrains Mono';
-              if (fs !== lastFont) { context.font = fs; lastFont = fs; }
-              context.fillStyle = 'rgb(' + r + ',' + gr + ',' + b + ')';
-              const ci = ((bright >> 2) + ((sx*7 + sy*13) >> 3)) % glyphs.length;
-              context.fillText(glyphs[ci], cx, cy);
-            } else if (mode === 1) {
-              p.fill(r, gr, b);
-              const d = gEff * (0.1 + bright * 0.0033);
-              p.ellipse(cx, cy, d, d);
-            } else {
-              p.fill(r, gr, b);
-              p.rectMode(p.CENTER);
-              p.rect(cx, cy, gEff*0.93, gEff*0.93);
-            }
           }
         }
       }
