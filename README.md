@@ -4,7 +4,7 @@
 
 **Демо (тут все открытки):** https://vincere-mori.github.io/love/
 
-→ [English version below](#cards)
+→ [English below](#cards)
 
 ## Что есть
 
@@ -22,40 +22,38 @@
 Просто докинь параметры в URL:
 
 ```
-.../https://vincere-mori.github.io/love/cards/sozvezdie/?name=Аня&text=моё небо
-.../https://vincere-mori.github.io/love/cards/serdtse/?text=для тебя
-.../https://vincere-mori.github.io/love/cards/pismo/?name=Милая&text=строка раз|строка два|строка три&sign=твой С.
-.../https://vincere-mori.github.io/love/cards/svetlyachki/?name=Аня&text=наш июльский вечер
-.../https://vincere-mori.github.io/love/cards/chasy/?name=Аня и Саша&date=14 февраля 2024&text=наша вечность
+https://vincere-mori.github.io/love/cards/sozvezdie/?name=Аня&text=моё небо
+https://vincere-mori.github.io/love/cards/serdtse/?text=для тебя
+https://vincere-mori.github.io/love/cards/pismo/?name=Милая&text=строка раз|строка два|строка три&sign=твой С.
+https://vincere-mori.github.io/love/cards/svetlyachki/?name=Аня&text=наш июльский вечер
+https://vincere-mori.github.io/love/cards/chasy/?name=Аня и Саша&date=14 февраля 2024&text=наша вечность
 ```
 
-В письме строки разделяются `|`. Кириллица и пробелы — нормально (браузер сам закодирует), но если пересылаешь в мессенджере, лучше просто скопировать готовую ссылку из адресной строки.
+В письме строки разделяются `|`. Кириллица и пробелы — нормально (браузер сам закодирует), но если пересылаешь в мессенджере, лучше просто скопировать ссылку из адресной строки.
 
-Все ссылки — статика, ничего не отправляется на сервер, ничего не сохраняется. Открытка живёт только в URL.
+Всё статика, ничего никуда не уходит.
 
 ## Управление
 
 - **мышь** — лёгкий доворот / параллакс
 - **колесо мыши** — раскрутить пион
 - **клик** — взрыв сердца / звёздный дождь / сборка светлячков (зависит от карточки)
-- **F** в пионе — полный экран
 
 ## Сделать свою
 
-Каждая открытка — один `index.html` + p5.js с CDN. Если хочешь переписать текст, поменять палитру или геометрию — правишь файл в `cards/<имя>/index.html`. Цветовая схема пиона лежит массивом `blooms` в начале, для остальных — параметры рядом с инициализацией. Палитры превью на витрине — в `index.html` корня в CSS-классах `.pion .art` и т.д.
+Каждая открытка — один `index.html` + p5.js с CDN. Правишь файл в `cards/<имя>/index.html`, меняешь что хочешь. Цветовая схема пиона лежит массивом `blooms` в начале скрипта.
 
 ## Технически
 
 - p5.js 1.9.3 с CDN
-- Чистый HTML/CSS/JS, ноль зависимостей кроме p5
-- Работает на телефоне, респонсив через `vw`-юниты
+- HTML/CSS/JS, без сборки
+- Работает на телефоне
 
 ## Поддержать
 
 Если понравилось — поставь ⭐ и/или можешь отправить на чай:
 
-- [Чаевые (cloudtips)](https://pay.cloudtips.ru/p/6c077990)
-- [Boosty](https://boosty.to/jsu/donate)
+- [Чаевые](https://pay.cloudtips.ru/p/6c077990)
 
 ## Лицензия
 
@@ -65,62 +63,45 @@ MIT. Если сделаешь свою открытку — кинь ссылк
 
 # Cards
 
-Six generative cards built with p5.js. A peony blooms, fireflies drift, a letter unfolds. Each card reads a name and message straight from the URL — send a personalized link, no code needed.
+Six animated cards in your browser, built with p5.js. A peony grows, fireflies drift, a letter opens. You pass the name and text in the URL and send the link — no code editing, no app, nothing to install.
 
-**Demo (all cards here):** https://vincere-mori.github.io/love/
-
-## What's inside
+**Live:** https://vincere-mori.github.io/love/
 
 | Card | What it does |
 |---|---|
-| [peony](https://vincere-mori.github.io/love/cards/pion/) | 3D peony blooms and wilts. Mouse rotates it, scroll wheel spins it. |
-| [constellation](https://vincere-mori.github.io/love/cards/sozvezdie/) | Stars form a heart with a name beneath. Click for a shooting star shower. |
-| [heart](https://vincere-mori.github.io/love/cards/serdtse/) | ~2400 particles pulsing in a heart shape. Mouse rotates, click — it shatters and reforms. |
-| [letter](https://vincere-mori.github.io/love/cards/pismo/) | A paper letter unfolds, lines appear one by one, sealed with wax. Dust in a beam of light. |
-| [fireflies](https://vincere-mori.github.io/love/cards/svetlyachki/) | Warm July evening: fireflies drift, follow the cursor, click — they form a heart. |
-| [clock](https://vincere-mori.github.io/love/cards/chasy/) | A ribbon clock dial with a name and date in the center. Great for anniversaries. |
+| [peony](https://vincere-mori.github.io/love/cards/pion/) | 3D peony blooms and wilts. Move the mouse to rotate, scroll to spin. |
+| [constellation](https://vincere-mori.github.io/love/cards/sozvezdie/) | Stars slowly form a heart with a name underneath. Click to trigger a shooting star shower. |
+| [heart](https://vincere-mori.github.io/love/cards/serdtse/) | About 2400 particles in the shape of a beating heart. Click to shatter it and watch it pull back together. |
+| [letter](https://vincere-mori.github.io/love/cards/pismo/) | A paper letter folds open, lines appear one by one, wax seal at the end. |
+| [fireflies](https://vincere-mori.github.io/love/cards/svetlyachki/) | A warm night field. Fireflies follow the cursor, click to gather them into a heart. |
+| [clock](https://vincere-mori.github.io/love/cards/chasy/) | A dial made of flowing ribbons, name and date in the center. Works well for anniversaries. |
 
-## Send it to her
+## Personalize
 
-Add parameters to the URL:
+Put params in the URL, open it, share it:
 
 ```
-.../https://vincere-mori.github.io/love/cards/sozvezdie/?name=Anna&text=my sky
-.../https://vincere-mori.github.io/love/cards/serdtse/?text=for you
-.../https://vincere-mori.github.io/love/cards/pismo/?name=Dear&text=Line one|Line two|Line three&sign=yours
-.../https://vincere-mori.github.io/love/cards/svetlyachki/?name=Anna&text=our July evening
-.../https://vincere-mori.github.io/love/cards/chasy/?name=Anna %26 Sasha&date=February 14 2024&text=our eternity
+https://vincere-mori.github.io/love/cards/sozvezdie/?name=Anna&text=my sky
+https://vincere-mori.github.io/love/cards/serdtse/?text=for you
+https://vincere-mori.github.io/love/cards/pismo/?name=Dear&text=Line one|Line two|Line three&sign=yours
+https://vincere-mori.github.io/love/cards/svetlyachki/?name=Anna&text=our July evening
+https://vincere-mori.github.io/love/cards/chasy/?name=Anna+%26+Sasha&date=February+14+2024&text=our+eternity
 ```
 
-Separate letter lines with `|`. Just copy the URL from the address bar — browser handles encoding. Everything is static, nothing is sent to a server.
+Separate letter lines with `|`. Copy the URL from the address bar before sending — browser will encode it properly.
 
-## Controls
-
-- **mouse** — gentle rotation / parallax
-- **scroll wheel** — spin the peony
-- **click** — heart burst / shooting stars / firefly heart (depends on the card)
-- **F** on the peony — fullscreen
-
-## Run locally
+## Run it locally
 
 ```bash
 git clone https://github.com/vincere-mori/love
 cd love
 python -m http.server 8000
-# open http://localhost:8000
 ```
 
-## Make your own
+## Tip
 
-Each card is a single `index.html` + p5.js from CDN. Edit `cards/<name>/index.html` to change colors, text, geometry. No build step.
-
-## Support
-
-If you like this — star ⭐ the repo and/or tip:
-
-- [Cloudtips](https://pay.cloudtips.ru/p/6c077990)
-- [Boosty](https://boosty.to/jsu/donate)
+If you like it: [cloudtips](https://pay.cloudtips.ru/p/6c077990)
 
 ## License
 
-MIT. Fork it, use it, share it. If you make your own card — drop a link in the issues.
+MIT.
