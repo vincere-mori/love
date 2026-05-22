@@ -4,6 +4,14 @@
 
 **Демо (тут все открытки):** https://vincere-mori.github.io/love/
 
+## Превью
+
+| светлячки | сердце |
+|---|---|
+| ![светлячки](assets/gifs/fireflies.gif) | ![сердце](assets/gifs/heart.gif) |
+| часы | письмо |
+| ![часы](assets/gifs/clock.gif) | ![письмо](assets/gifs/letter.gif) |
+
 → [English below](#cards)
 
 ## Что есть
