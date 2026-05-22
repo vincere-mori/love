@@ -61,17 +61,24 @@
       let heartTimer = 0;
       let t = 0;
       let noiseOff = 0;
+      let pointerX = 0;
+      let pointerY = 0;
+      let pointerActive = false;
 
       function heartXY(i, total, scale) {
         const a = (p.TWO_PI / total) * i - p.HALF_PI;
         const x = 16 * Math.pow(p.sin(a), 3);
         const y = -(13 * p.cos(a) - 5 * p.cos(2*a) - 2 * p.cos(3*a) - p.cos(4*a));
-        return { x: p.width/2 + x * scale, y: p.height/2 + y * scale + p.height * 0.04 };
+        return { x: p.width/2 + x * scale, y: p.height/2 + y * scale };
       }
 
       p.setup = () => {
         p.createCanvas(p.windowWidth, p.windowHeight);
+        p.pixelDensity(1);
+        p.frameRate(60);
         p.noStroke();
+        pointerX = p.width / 2;
+        pointerY = p.height * 0.42;
         for (let i = 0; i < N; i++) {
           bugs.push({
             x: p.random(p.width), y: p.random(p.height * 0.1, p.height * 0.85),
@@ -79,6 +86,9 @@
             phase: p.random(p.TWO_PI), pulseSpeed: p.random(1.2, 2.6),
             hue: p.random(0.8, 1.0), size: p.random(1.8, 4.2),
             noiseX: p.random(1000), noiseY: p.random(1000),
+            followRadius: p.random(38, 130),
+            followPhase: p.random(p.TWO_PI),
+            pull: p.random(0.85, 1.25),
             heartX: 0, heartY: 0
           });
         }
@@ -86,14 +96,14 @@
       };
 
       function recalcHeart() {
-        const scale = p.min(p.width, p.height) * 0.028;
+        const scale = p.min(p.width, p.height) * 0.022;
         bugs.forEach((b, i) => { const h = heartXY(i, N, scale); b.heartX = h.x; b.heartY = h.y; });
       }
 
       p.draw = () => {
-        const dt = p.deltaTime / 1000;
+        const dt = Math.min(p.deltaTime, 34) / 1000;
         t += dt; noiseOff += dt * 0.08;
-        p.background(4, 8, 14, 40);
+        p.background(4, 8, 14, pointerActive ? 62 : 40);
 
         p.fill(5, 13, 9, 200);
         p.beginShape();
@@ -111,36 +121,59 @@
         for (const b of bugs) {
           if (heartMode) {
             const dx = b.heartX - b.x, dy = b.heartY - b.y;
-            b.vx += dx * 0.08; b.vy += dy * 0.08;
+            b.vx += dx * 0.22; b.vy += dy * 0.22;
             b.vx *= 0.78; b.vy *= 0.78;
           } else {
             const flowA = p.noise(b.noiseX + noiseOff) * p.TWO_PI * 2;
-            b.vx += p.cos(flowA) * 0.8;
-            b.vy += p.sin(flowA) * 0.8 - 0.15;
-            const mdx = p.mouseX - b.x, mdy = p.mouseY - b.y;
-            const md = Math.sqrt(mdx*mdx + mdy*mdy) + 1;
-            if (md < 160) { b.vx += mdx / md * 0.9; b.vy += mdy / md * 0.9; }
-            b.vx *= 0.94; b.vy *= 0.94;
+            b.vx += p.cos(flowA) * 0.35;
+            b.vy += p.sin(flowA) * 0.35 - 0.08;
+            if (pointerActive) {
+              const orbit = t * (0.8 + b.pull * 0.9) + b.followPhase;
+              const tx = pointerX + p.cos(orbit) * b.followRadius;
+              const ty = pointerY + p.sin(orbit * 0.9) * b.followRadius * 0.7;
+              const dx = tx - b.x, dy = ty - b.y;
+              const d = Math.sqrt(dx*dx + dy*dy) + 1;
+              const far = p.constrain(d / 260, 0.2, 1.4);
+              b.vx += dx * 0.020 * b.pull + dx / d * 1.0 * far;
+              b.vy += dy * 0.020 * b.pull + dy / d * 1.0 * far;
+            }
+            b.vx *= 0.90; b.vy *= 0.90;
           }
-          b.vx = p.constrain(b.vx, -60, 60);
-          b.vy = p.constrain(b.vy, -60, 60);
+          const maxV = heartMode ? 280 : 190;
+          b.vx = p.constrain(b.vx, -maxV, maxV);
+          b.vy = p.constrain(b.vy, -maxV, maxV);
           b.x += b.vx * dt; b.y += b.vy * dt;
           if (b.x < -20) b.x = p.width + 20;
           if (b.x > p.width + 20) b.x = -20;
-          b.y = p.constrain(b.y, -20, p.height * 0.88);
+          b.y = p.constrain(b.y, -20, p.height * 0.9);
 
           const pulse = 0.55 + 0.45 * p.sin(t * b.pulseSpeed + b.phase);
           const r = p.lerp(190, 255, b.hue);
           const g = p.lerp(210, 255, b.hue);
           const bv = p.lerp(60, 130, b.hue);
+          const aura = pointerActive && !heartMode ? 4.8 : 5.5;
+          const halo = pointerActive && !heartMode ? 10 : 14;
           p.fill(r, g, bv, 220 * pulse);   p.circle(b.x, b.y, b.size);
-          p.fill(r, g, bv, 55 * pulse);    p.circle(b.x, b.y, b.size * 5.5);
-          p.fill(r, g, bv, 14 * pulse);    p.circle(b.x, b.y, b.size * 14);
+          p.fill(r, g, bv, 55 * pulse);    p.circle(b.x, b.y, b.size * aura);
+          p.fill(r, g, bv, 14 * pulse);    p.circle(b.x, b.y, b.size * halo);
         }
       };
 
-      p.mousePressed = () => { heartMode = true; heartTimer = 3.5; recalcHeart(); };
-      p.windowResized  = () => { p.resizeCanvas(p.windowWidth, p.windowHeight); recalcHeart(); };
+      function setPointer(x, y) {
+        pointerX = x;
+        pointerY = y;
+        pointerActive = true;
+      }
+
+      p.mouseMoved = () => setPointer(p.mouseX, p.mouseY);
+      p.touchMoved = () => { if (p.touches.length) setPointer(p.touches[0].x, p.touches[0].y); return false; };
+      p.touchStarted = () => { if (p.touches.length) setPointer(p.touches[0].x, p.touches[0].y); };
+      p.mousePressed = () => { setPointer(p.mouseX, p.mouseY); heartMode = true; heartTimer = 3.8; recalcHeart(); };
+      p.windowResized  = () => {
+        p.resizeCanvas(p.windowWidth, p.windowHeight);
+        if (!pointerActive) { pointerX = p.width / 2; pointerY = p.height * 0.42; }
+        recalcHeart();
+      };
     };
 
     new p5(sketch, document.getElementById('stage'));

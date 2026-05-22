@@ -59,9 +59,8 @@
         return { x: x * scale, y: y * scale };
       }
 
-      p.setup = () => {
-        p.createCanvas(p.windowWidth, p.windowHeight);
-        p.noStroke();
+      function buildScene() {
+        bgStars = [];
         for (let i = 0; i < 260; i++) {
           bgStars.push({
             x: p.random(p.width), y: p.random(p.height),
@@ -73,19 +72,30 @@
         }
         const n = 22;
         const scale = p.min(p.width, p.height) * 0.018;
+        const oldHeart = heart;
+        heart = [];
         for (let i = 0; i < n; i++) {
           const a = (p.TWO_PI / n) * i - p.HALF_PI;
           const pt = heartPoint(a, scale);
           heart.push({
             x: p.width / 2 + pt.x, y: p.height / 2 + pt.y,
-            tw: p.random(p.TWO_PI), born: i * 0.18
+            tw: oldHeart[i] ? oldHeart[i].tw : p.random(p.TWO_PI),
+            born: i * 0.18
           });
         }
+      }
+
+      p.setup = () => {
+        p.createCanvas(p.windowWidth, p.windowHeight);
+        p.pixelDensity(1);
+        p.frameRate(60);
+        p.noStroke();
+        buildScene();
         setTimeout(() => document.body.classList.add('ready'), 100);
       };
 
       p.draw = () => {
-        const dt = p.deltaTime / 1000;
+        const dt = Math.min(p.deltaTime, 34) / 1000;
         t += dt;
         p.background(5, 6, 13, 245);
 
@@ -164,7 +174,7 @@
         }
       };
 
-      p.windowResized = () => p.resizeCanvas(p.windowWidth, p.windowHeight);
+      p.windowResized = () => { p.resizeCanvas(p.windowWidth, p.windowHeight); buildScene(); };
     };
 
     new p5(sketch, document.getElementById('stage'));

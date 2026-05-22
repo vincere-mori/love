@@ -15,7 +15,7 @@
       width: 100vw;
     }
 
-    canvas { display: block; }
+    canvas { display: block; touch-action: none; }
 
     #stage { width: 100%; height: 100%; }
 
@@ -122,8 +122,11 @@
       let clock = 0;
 
       let rotPitch = 0, rotYaw = 0, rotRoll = 0;
-      let spinYaw = 0, spinRoll = 0;
-      let curPitch = 0, curYaw = 0;
+      let spinYaw = 0;
+      let targetPitch = 0, targetYaw = 0;
+      let yawVel = 0, pitchVel = 0;
+      let dragging = false;
+      let lastX = 0, lastY = 0;
       let easeRot = 0;
       let scrollSpin = 0;
 
@@ -165,7 +168,7 @@
       p.beginScene = function() { warming = false; };
 
       p.draw = function() {
-        const dt = p.deltaTime / 1000;
+        const dt = Math.min(p.deltaTime, 34) / 1000;
         const b  = blooms[activeIdx];
 
         if (warming) {
@@ -184,24 +187,27 @@
         }
 
         p.background(7, 6, 10);
-        clock += 0.016;
+        clock += dt;
 
         easeRot = p.min(1, easeRot + dt * 0.09);
         const re = easeInOutCubic(easeRot);
 
-        spinYaw  += dt * 0.28 * re + scrollSpin;
+        spinYaw  += dt * 0.16 * re + scrollSpin;
         scrollSpin *= 0.88;
+
+        if (!dragging) {
+          targetYaw += yawVel * dt;
+          targetPitch += pitchVel * dt;
+          yawVel *= 0.92;
+          pitchVel *= 0.88;
+        }
+        targetPitch = p.constrain(targetPitch, -0.72, 0.62);
         // oscillate pitch/roll — не накапливаются, цветок не переворачивается
         const autoPitch = 0.13 * p.sin(clock * 0.16) * re;
         const autoRoll  = 0.10 * p.sin(clock * 0.10 + 1.5) * re;
 
-        const aimPitch = (p.mouseY - p.height / 2) / p.height * 0.9;
-        const aimYaw   = (p.mouseX - p.width  / 2) / p.width  * 2.4;
-        curPitch += (aimPitch - curPitch) * 0.14;
-        curYaw   += (aimYaw   - curYaw)   * 0.14;
-
-        rotPitch = p.constrain(autoPitch + curPitch * re, -0.22, 0.26);
-        rotYaw   = spinYaw + curYaw * re;
+        rotPitch += (targetPitch + autoPitch - rotPitch) * 0.16;
+        rotYaw   += (targetYaw + spinYaw - rotYaw) * 0.16;
         rotRoll  = autoRoll;
 
         if (stage === 'opening') {
@@ -226,9 +232,9 @@
           if (stageT > 0.55) startBloom((activeIdx + 1) % blooms.length);
         }
 
-        if (stage === 'live') {
-          pullX += ((p.mouseX - p.width  / 2) * 0.07 - pullX) * 0.045;
-          pullY += ((p.mouseY - p.height / 2) * 0.07 - pullY) * 0.045;
+        if (stage === 'live' && dragging) {
+          pullX += ((lastX - p.width  / 2) * 0.045 - pullX) * 0.05;
+          pullY += ((lastY - p.height / 2) * 0.045 - pullY) * 0.05;
         } else {
           pullX *= 0.94;
           pullY *= 0.94;
@@ -241,60 +247,7 @@
         const ox = (p.width  - rW) / 2 + pullX;
         const oy = (p.height - rH) / 2 + pullY;
         p.image(frame, ox, oy, rW, rH);
-        showFps();
       };
-
-      function fireBreak() {
-        breakOn  = true;
-        breakAmt = p.random(0.4, 1.0);
-        breakBands = [];
-        const sc = p.min(p.width / FB_W, p.height / FB_H) * 0.86;
-        const rW = FB_W * sc, rH = FB_H * sc;
-        const ox = (p.width  - rW) / 2 + pullX;
-        const oy = (p.height - rH) / 2 + pullY;
-        const n = p.floor(p.random(3, 11));
-        for (let i = 0; i < n; i++) {
-          const sy = p.random(oy, oy + rH);
-          const sh = p.min(p.random(2, rH * 0.08), oy + rH - sy);
-          breakBands.push({
-            y: sy, h: sh, fx: ox, fw: rW,
-            offset: p.random(-85, 85) * breakAmt,
-            chroma: p.random() < 0.42,
-            duration: p.random(0.08, 0.32)
-          });
-        }
-      }
-
-      function stepBreak(dt) {
-        if (!breakOn) return;
-        let done = true;
-        for (const s of breakBands) {
-          s.duration -= dt;
-          if (s.duration > 0) done = false;
-          else s.offset *= 0.72;
-        }
-        if (done) { breakOn = false; breakBands = []; }
-      }
-
-      function paintBreak() {
-        if (!breakOn || !breakBands.length) return;
-        for (const s of breakBands) {
-          if (p.abs(s.offset) < 0.5) continue;
-          const sx = p.floor(s.fx), sy = p.floor(s.y), sw = p.floor(s.fw), sh = p.floor(s.h);
-          if (sw < 1 || sh < 1) continue;
-          if (s.chroma) {
-            context.save();
-            context.globalAlpha = 0.7;
-            context.globalCompositeOperation = 'lighter';
-            context.drawImage(context.canvas, sx, sy, sw, sh, sx + s.offset*1.5, sy, sw, sh);
-            context.globalAlpha = 0.45;
-            context.drawImage(context.canvas, sx, sy, sw, sh, sx - s.offset, sy, sw, sh);
-            context.restore();
-          } else {
-            context.drawImage(context.canvas, sx, sy, sw, sh, sx + s.offset, sy, sw, sh);
-          }
-        }
-      }
 
       function paintBloomToBuffer(b, op, fd) {
         frame.background(7, 6, 10);
@@ -423,7 +376,9 @@
           }
         }
 
-        const coreA = p.constrain((op - 0.45) / 0.3, 0, 1) * (1 - fd);
+        const [,,coreNz] = rotate3(0, -1, 0);
+        const coreFacing = coreNz > 0.12 ? 0 : coreNz > -0.02 ? p.map(coreNz, 0.12, -0.02, 0, 1) : 1;
+        const coreA = p.constrain((op - 0.45) / 0.3, 0, 1) * (1 - fd) * coreFacing;
         if (coreA > 0) items.push({ rz:0, kind:'c', sx:0, sy:0, sa:0, alpha:coreA });
 
         for (let layer = b.layers; layer >= 0; layer--) {
@@ -554,18 +509,57 @@
         }
       }
 
-      function showFps() {
-        p.fill(255, 255, 255, 36);
-        p.textSize(9);
-        p.textAlign(p.LEFT, p.TOP);
-        p.text(p.floor(p.frameRate()) + ' к/с', 10, 10);
-        p.textAlign(p.CENTER, p.CENTER);
-      }
-
       p.mouseWheel = function(e) {
         scrollSpin += e.delta * 0.0025;
         return false;
       };
+
+      function startDrag(x, y) {
+        dragging = true;
+        lastX = x;
+        lastY = y;
+        yawVel = 0;
+        pitchVel = 0;
+      }
+
+      function dragTo(x, y) {
+        if (!dragging) return;
+        const dx = x - lastX;
+        const dy = y - lastY;
+        targetYaw += dx * 0.012;
+        targetPitch += dy * 0.010;
+        yawVel = dx * 0.32;
+        pitchVel = dy * 0.26;
+        lastX = x;
+        lastY = y;
+      }
+
+      function stopDrag() {
+        dragging = false;
+      }
+
+      p.mousePressed = function() {
+        startDrag(p.mouseX, p.mouseY);
+      };
+
+      p.mouseDragged = function() {
+        dragTo(p.mouseX, p.mouseY);
+        return false;
+      };
+
+      p.mouseReleased = stopDrag;
+
+      p.touchStarted = function() {
+        if (p.touches.length) startDrag(p.touches[0].x, p.touches[0].y);
+        return false;
+      };
+
+      p.touchMoved = function() {
+        if (p.touches.length) dragTo(p.touches[0].x, p.touches[0].y);
+        return false;
+      };
+
+      p.touchEnded = stopDrag;
 
       p.keyPressed = function() {
         if (p.key === 'f' || p.key === 'F') { const fs = p.fullscreen(); p.fullscreen(!fs); }
