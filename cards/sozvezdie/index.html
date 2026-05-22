@@ -16,8 +16,8 @@
       font-family: 'Cormorant Garamond', 'Georgia', serif;
       pointer-events: none; z-index: 5;
     }
-    .caption .name { font-size: clamp(28px, 5vw, 56px); letter-spacing: 8px; font-weight: 300; opacity: 0; transition: opacity 2s ease 2s; }
-    .caption .sub  { font-size: clamp(11px, 1.3vw, 14px); letter-spacing: 4px; color: #8a8294; margin-top: 14px; opacity: 0; transition: opacity 2s ease 3.2s; text-transform: uppercase; }
+    .caption .name { font-size: clamp(28px, 5vw, 56px); letter-spacing: 8px; font-weight: 300; opacity: 0; transition: opacity 1.4s ease 1s; }
+    .caption .sub  { font-size: clamp(11px, 1.3vw, 14px); letter-spacing: 4px; color: #8a8294; margin-top: 14px; opacity: 0; transition: opacity 1.4s ease 1.7s; text-transform: uppercase; }
     body.ready .caption .name, body.ready .caption .sub { opacity: 1; }
     .hint {
       position: fixed; left: 0; right: 0; top: 5%;
@@ -25,7 +25,7 @@
       font-family: 'JetBrains Mono', 'Courier New', monospace;
       font-size: 11px; letter-spacing: 3px; text-transform: uppercase;
       pointer-events: none; z-index: 5;
-      opacity: 0; transition: opacity 2s ease 5s;
+      opacity: 0; transition: opacity 1.6s ease 2.7s;
     }
     body.ready .hint { opacity: 1; }
   </style>
@@ -80,7 +80,7 @@
           heart.push({
             x: p.width / 2 + pt.x, y: p.height / 2 + pt.y,
             tw: oldHeart[i] ? oldHeart[i].tw : p.random(p.TWO_PI),
-            born: i * 0.18
+            born: i * 0.07
           });
         }
       }
@@ -112,12 +112,12 @@
           p.circle(px, py, s.r);
         }
 
-        appeared = p.min(heart.length, appeared + dt * 3);
+        appeared = p.min(heart.length, appeared + dt * 9);
         for (let i = 0; i < heart.length; i++) {
           if (i > appeared) break;
           const h = heart[i];
           const localT = p.max(0, t - h.born);
-          const grow = p.min(1, localT * 2);
+          const grow = p.min(1, localT * 5);
           const tw = 0.7 + 0.3 * p.sin(t * 1.5 + h.tw);
           const px = h.x - mx * 40;
           const py = h.y - my * 40;
@@ -130,7 +130,7 @@
         }
 
         if (appeared >= heart.length - 0.1) {
-          lineProgress = p.min(1, lineProgress + dt * 0.35);
+          lineProgress = p.min(1, lineProgress + dt * 1.15);
           const upTo = p.floor(lineProgress * heart.length);
           p.stroke(255, 230, 210, 80);
           p.strokeWeight(0.7);

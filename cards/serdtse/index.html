@@ -114,13 +114,17 @@
 
         for (const pt of pts) {
           if (burst > 0.01) {
-            pt.vx += (pt.x0 - pt.x) * 0.06;
-            pt.vy += (pt.y0 - pt.y) * 0.06;
-            pt.vz += (pt.z0 - pt.z) * 0.06;
-            pt.vx *= 0.88; pt.vy *= 0.88; pt.vz *= 0.88;
-            pt.x += pt.vx; pt.y += pt.vy; pt.z += pt.vz;
+            pt.vx += (pt.x0 - pt.x) * 0.09;
+            pt.vy += (pt.y0 - pt.y) * 0.09;
+            pt.vz += (pt.z0 - pt.z) * 0.09;
+            pt.vx *= 0.91; pt.vy *= 0.91; pt.vz *= 0.91;
+            pt.x += pt.vx * dt * 60;
+            pt.y += pt.vy * dt * 60;
+            pt.z += pt.vz * dt * 60;
           } else {
-            pt.x = pt.x0; pt.y = pt.y0; pt.z = pt.z0;
+            pt.x += (pt.x0 - pt.x) * 0.12;
+            pt.y += (pt.y0 - pt.y) * 0.12;
+            pt.z += (pt.z0 - pt.z) * 0.12;
           }
           const [rx, ry, rz] = rot(pt.x * pulse, pt.y * pulse, pt.z * pulse, rotX, rotY);
           const ps = focal / (focal + rz * scale);
@@ -149,10 +153,10 @@
         for (const pt of pts) {
           const dx = pt.x0, dy = pt.y0, dz = pt.z0;
           const len = Math.sqrt(dx*dx + dy*dy + dz*dz) + 0.01;
-          const f = p.random(0.5, 1.4);
-          pt.vx = dx / len * 6 * f + p.random(-2, 2);
-          pt.vy = dy / len * 6 * f + p.random(-2, 2);
-          pt.vz = dz / len * 6 * f + p.random(-2, 2);
+          const f = p.random(0.35, 0.9);
+          pt.vx = pt.vx * 0.3 + dx / len * 3.2 * f + p.random(-0.6, 0.6);
+          pt.vy = pt.vy * 0.3 + dy / len * 3.2 * f + p.random(-0.6, 0.6);
+          pt.vz = pt.vz * 0.3 + dz / len * 3.2 * f + p.random(-0.6, 0.6);
         }
       };
 

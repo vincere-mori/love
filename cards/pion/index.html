@@ -74,6 +74,7 @@
       opacity: 0; transition: opacity 2s ease 4s;
     }
     body.ready .hint { opacity: 1; }
+    #intro { display: none !important; }
   </style>
 </head>
 <body>
@@ -108,6 +109,7 @@
     }
 
     setTimeout(() => { introTimerDone = true; tryReveal(); }, 2300);
+    setTimeout(() => document.body.classList.add('ready'), 700);
 
     const sketch = function(p) {
       const FB_W = 720, FB_H = 720;
@@ -121,17 +123,17 @@
       let pullX = 0, pullY = 0;
       let clock = 0;
 
-      let rotPitch = 0, rotYaw = 0, rotRoll = 0;
+      let rotPitch = -0.12, rotYaw = 0, rotRoll = 0;
       let spinYaw = 0;
-      let targetPitch = 0, targetYaw = 0;
+      let targetPitch = -0.12, targetYaw = 0;
       let yawVel = 0, pitchVel = 0;
       let dragging = false;
       let lastX = 0, lastY = 0;
       let easeRot = 0;
-      let scrollSpin = 0;
+      let petalSpin = 0, petalSpinVel = 0;
 
-      let warming = true, warmCount = 0;
-      const WARM_NEED = 60;
+      let warming = false, warmCount = 0;
+      const WARM_NEED = 0;
 
       let fade = 0;
 
@@ -192,8 +194,9 @@
         easeRot = p.min(1, easeRot + dt * 0.09);
         const re = easeInOutCubic(easeRot);
 
-        spinYaw  += dt * 0.16 * re + scrollSpin;
-        scrollSpin *= 0.88;
+        spinYaw  += dt * 0.05 * re;
+        petalSpin += petalSpinVel;
+        petalSpinVel *= 0.90;
 
         if (!dragging) {
           targetYaw += yawVel * dt;
@@ -201,8 +204,7 @@
           yawVel *= 0.92;
           pitchVel *= 0.88;
         }
-        targetPitch = p.constrain(targetPitch, -0.72, 0.62);
-        // oscillate pitch/roll — не накапливаются, цветок не переворачивается
+        targetPitch = p.constrain(targetPitch, -1.0, 0.86);
         const autoPitch = 0.13 * p.sin(clock * 0.16) * re;
         const autoRoll  = 0.10 * p.sin(clock * 0.10 + 1.5) * re;
 
@@ -211,7 +213,7 @@
         rotRoll  = autoRoll;
 
         if (stage === 'opening') {
-          openAmt += (openTarget - openAmt) * 0.0065;
+          openAmt += (openTarget - openAmt) * 0.018;
           stageT  += dt;
           if (openAmt > 0.98) { openAmt = 1; stage = 'live'; stageT = 0; }
         }
@@ -401,6 +403,7 @@
             if (fd > 0.1 && hash < (fd - 0.1) * 1.3) continue;
             let angle = (p.TWO_PI / np) * i + layer * 0.42 + p.sin(layer * 2.1) * 0.12;
             angle += hash * 0.15;
+            angle += petalSpin * (0.25 + lr * 1.1);
             const drp    = lFall * 0.5 * (0.4 + lr * 0.6);
             const shrink = 1 - lFall * 0.35;
             const dist   = baseR * eOp * (0.35 + lr * 0.25);
@@ -510,7 +513,7 @@
       }
 
       p.mouseWheel = function(e) {
-        scrollSpin += e.delta * 0.0025;
+        petalSpinVel += e.delta * 0.0007;
         return false;
       };
 

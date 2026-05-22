@@ -103,6 +103,7 @@
 
         const ringR = R * pulseScale;
         const ringIn = rInner * pulseScale;
+        const sweep = t * 1.55 - p.HALF_PI;
 
         const segs = p.width < 560 ? 44 : 60;
         for (let i = 0; i < ribbons.length; i++) {
@@ -141,16 +142,36 @@
         p.fill(232, 228, 240, 8);
         p.circle(cx, cy, ringIn * 2.6);
 
-        for (let i = 0; i < 12; i++) {
-          const a = (p.TWO_PI / 12) * i - p.HALF_PI;
-          const x1 = cx + p.cos(a) * (ringR + 18);
-          const y1 = cy + p.sin(a) * (ringR + 18);
-          const x2 = cx + p.cos(a) * (ringR + 28);
-          const y2 = cy + p.sin(a) * (ringR + 28);
-          p.stroke(180, 174, 200, 90);
-          p.strokeWeight(1.2);
+        for (let i = 0; i < 60; i++) {
+          const a = (p.TWO_PI / 60) * i - p.HALF_PI;
+          const major = i % 5 === 0;
+          const diff = Math.abs(Math.atan2(Math.sin(a - sweep), Math.cos(a - sweep)));
+          const glow = p.constrain(1 - diff / 0.45, 0, 1);
+          const x1 = cx + p.cos(a) * (ringR + (major ? 17 : 22));
+          const y1 = cy + p.sin(a) * (ringR + (major ? 17 : 22));
+          const x2 = cx + p.cos(a) * (ringR + (major ? 31 : 28));
+          const y2 = cy + p.sin(a) * (ringR + (major ? 31 : 28));
+          p.stroke(
+            p.lerp(170, 255, glow),
+            p.lerp(166, 238, glow),
+            p.lerp(195, 210, glow),
+            (major ? 90 : 42) + glow * 150
+          );
+          p.strokeWeight((major ? 1.3 : 0.7) + glow * 1.2);
           p.line(x1, y1, x2, y2);
         }
+
+        const handLen = ringR + 36;
+        const hx = cx + p.cos(sweep) * handLen;
+        const hy = cy + p.sin(sweep) * handLen;
+        p.stroke(255, 236, 204, 165);
+        p.strokeWeight(1.4);
+        p.line(cx, cy, hx, hy);
+        p.noStroke();
+        p.fill(255, 235, 205, 180);
+        p.circle(hx, hy, 5);
+        p.fill(255, 235, 205, 35);
+        p.circle(hx, hy, 28);
         p.noStroke();
       };
 
