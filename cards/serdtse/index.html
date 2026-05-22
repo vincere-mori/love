@@ -61,6 +61,8 @@
 
       p.setup = () => {
         p.createCanvas(p.windowWidth, p.windowHeight);
+        p.pixelDensity(1);
+        p.frameRate(60);
         p.noStroke();
         for (let i = 0; i < N; i++) {
           const a = p.random(p.TWO_PI);
@@ -92,7 +94,7 @@
       }
 
       p.draw = () => {
-        const dt = p.deltaTime / 1000;
+        const dt = Math.min(p.deltaTime, 34) / 1000;
         t += dt;
         p.background(10, 5, 9, 60);
 

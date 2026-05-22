@@ -73,6 +73,8 @@
 
       p.setup = () => {
         p.createCanvas(p.windowWidth, p.windowHeight);
+        p.pixelDensity(1);
+        p.frameRate(60);
         for (let i = 0; i < N; i++) {
           ribbons.push({
             a0: (p.TWO_PI / N) * i,
@@ -86,7 +88,7 @@
       };
 
       p.draw = () => {
-        const dt = p.deltaTime / 1000;
+        const dt = Math.min(p.deltaTime, 34) / 1000;
         t += dt;
         pulseT += dt;
         p.background(6, 8, 13, 50);
@@ -102,13 +104,13 @@
         const ringR = R * pulseScale;
         const ringIn = rInner * pulseScale;
 
+        const segs = p.width < 560 ? 44 : 60;
         for (let i = 0; i < ribbons.length; i++) {
           const rb = ribbons[i];
           const reveal = p.constrain((t - rb.born) / 1.2, 0, 1);
           if (reveal < 0.01) continue;
           const ease = reveal < 0.5 ? 4 * reveal * reveal * reveal : 1 - p.pow(-2 * reveal + 2, 3) / 2;
 
-          const segs = 60;
           p.noFill();
           const hueR = p.lerp(120, 230, rb.hue);
           const hueG = p.lerp(140, 200, rb.hue);

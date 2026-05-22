@@ -104,9 +104,23 @@
 
     const sketch = (p) => {
       let motes = [];
+      let beamGrad;
+
+      function makeBeam() {
+        const beamX = p.width * 0.35;
+        const ctx = p.drawingContext;
+        beamGrad = ctx.createLinearGradient(beamX - 200, 0, beamX + 200, p.height);
+        beamGrad.addColorStop(0, 'rgba(255, 220, 160, 0)');
+        beamGrad.addColorStop(0.5, 'rgba(255, 220, 160, 0.05)');
+        beamGrad.addColorStop(1, 'rgba(255, 220, 160, 0)');
+      }
+
       p.setup = () => {
         p.createCanvas(p.windowWidth, p.windowHeight);
+        p.pixelDensity(1);
+        p.frameRate(60);
         p.noStroke();
+        makeBeam();
         for (let i = 0; i < 120; i++) {
           motes.push({
             x: p.random(p.width),
@@ -120,16 +134,11 @@
         }
       };
       p.draw = () => {
-        const dt = p.deltaTime / 1000;
+        const dt = Math.min(p.deltaTime, 34) / 1000;
         const t = p.millis() / 1000;
         p.background(12, 10, 8, 50);
-        const beamX = p.width * 0.35;
         const beam = p.drawingContext;
-        const grad = beam.createLinearGradient(beamX - 200, 0, beamX + 200, p.height);
-        grad.addColorStop(0, 'rgba(255, 220, 160, 0)');
-        grad.addColorStop(0.5, 'rgba(255, 220, 160, 0.05)');
-        grad.addColorStop(1, 'rgba(255, 220, 160, 0)');
-        beam.fillStyle = grad;
+        beam.fillStyle = beamGrad;
         beam.fillRect(0, 0, p.width, p.height);
         for (const m of motes) {
           m.x += m.vx * dt + Math.sin(t * m.speed + m.phase) * 8 * dt;
@@ -144,7 +153,7 @@
           p.circle(m.x, m.y, m.r * 4);
         }
       };
-      p.windowResized = () => p.resizeCanvas(p.windowWidth, p.windowHeight);
+      p.windowResized = () => { p.resizeCanvas(p.windowWidth, p.windowHeight); makeBeam(); };
     };
     new p5(sketch, document.getElementById('stage'));
   </script>
