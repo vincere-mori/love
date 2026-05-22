@@ -1,5 +1,9 @@
 # Открытки
 
+*Six generative cards in the browser — peony, constellation, heart, letter, fireflies, clock. Pass `?name=Anna&text=...` in the URL and share the link.* **[Live →](https://vincere-mori.github.io/love/)**
+
+---
+
 Переходи ниже, выбирай любую понравившуюся открытку: на чёрном фоне распускается цветок, выстраивается созвездие, разворачивается письмо. Каждая принимает имя и текст в URL — то есть ссылку можно отправить персонально, без правки кода, самостоятельно, ниже инструкция.
 
 **Демо (тут все открытки):** https://vincere-mori.github.io/love/
@@ -55,6 +59,3 @@ https://vincere-mori.github.io/love/cards/chasy/?name=Аня и Саша&date=14
 
 MIT · понравилось? [⭐ звезда](https://github.com/vincere-mori/love) или [чаевые](https://pay.cloudtips.ru/p/6c077990)
 
----
-
-*Six generative cards in the browser — peony, constellation, heart, letter, fireflies, clock. Pass `?name=Anna&text=...` in the URL and share the link.* **[Live →](https://vincere-mori.github.io/love/)**
