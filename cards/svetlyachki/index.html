@@ -127,8 +127,8 @@
         for (const b of bugs) {
           if (heartMode) {
             const dx = b.heartX - b.x, dy = b.heartY - b.y;
-            b.vx += dx * 0.22; b.vy += dy * 0.22;
-            b.vx *= 0.78; b.vy *= 0.78;
+            b.vx += dx * 0.42; b.vy += dy * 0.42;
+            b.vx *= 0.70; b.vy *= 0.70;
           } else {
             const homeA = t * b.orbitSpeed + b.phase;
             const homeX = b.homeX + p.cos(homeA) * b.orbitRadius;
@@ -145,7 +145,7 @@
             b.vy += dy * (0.028 + follow * 0.05) * b.pull;
             b.vx *= 0.88; b.vy *= 0.88;
           }
-          const maxV = heartMode ? 280 : 160;
+          const maxV = heartMode ? 420 : 160;
           b.vx = p.constrain(b.vx, -maxV, maxV);
           b.vy = p.constrain(b.vy, -maxV, maxV);
           b.x += b.vx * dt; b.y += b.vy * dt;
@@ -174,7 +174,7 @@
       p.mouseMoved = () => setPointer(p.mouseX, p.mouseY);
       p.touchMoved = () => { if (p.touches.length) setPointer(p.touches[0].x, p.touches[0].y); return false; };
       p.touchStarted = () => { if (p.touches.length) setPointer(p.touches[0].x, p.touches[0].y); };
-      p.mousePressed = () => { setPointer(p.mouseX, p.mouseY); heartMode = true; heartTimer = 3.8; recalcHeart(); };
+      p.mousePressed = () => { setPointer(p.mouseX, p.mouseY); heartMode = true; heartTimer = 5.2; recalcHeart(); };
       p.windowResized  = () => {
         p.resizeCanvas(p.windowWidth, p.windowHeight);
         pointerX = p.width / 2; pointerY = p.height * 0.42;

@@ -267,16 +267,15 @@
       function paintStem(g, b, progress, fd, cx, cy) {
         fd = fd || 0;
         const stemLen = FB_H * 0.42;
-        const stemX   = FB_W / 2;
-        const top     = cy;
-        const bot     = top + stemLen;
-        const visLen  = stemLen * easeOutQuart(progress);
-        const visTop  = bot - visLen;
-        for (let y = visTop; y < bot; y += 3) {
-          const tt    = (y - top) / stemLen;
+        const visible = easeOutQuart(progress);
+        const focal = 430;
+        for (let i = 0; i <= 56 * visible; i++) {
+          const tt    = i / 56;
           const sw    = p.lerp(15, 8, tt);
           const bend  = fd * 48 * (1 - tt) * p.sin((1 - tt) * p.PI);
           const wave  = p.sin(tt * p.PI * 0.32) * 22 + p.sin(tt * p.PI * 0.85) * 8 + bend;
+          const [rx, ry, rz] = rotate3(wave, tt * stemLen, 0);
+          const ps = focal / (focal + rz);
           let r  = p.lerp(b.stemC[0], b.stemC[0] * 0.5, tt);
           let gc = p.lerp(b.stemC[1], b.stemC[1] * 0.5, tt);
           let bl = p.lerp(b.stemC[2], b.stemC[2] * 0.5, tt);
@@ -286,33 +285,32 @@
             bl = p.lerp(bl, bl * 0.25 + 8, fd * 0.5);
           }
           g.fill(r, gc, bl);
-          g.ellipse(stemX + wave, y, sw, 5);
+          g.ellipse(cx + rx * ps, cy + ry * ps, sw * ps, 5 * ps);
           g.fill(r * 1.4, gc * 1.4, bl * 1.3, 50);
-          g.ellipse(stemX + wave - 2, y, sw * 0.2, 3);
+          g.ellipse(cx + (rx - 2) * ps, cy + ry * ps, sw * 0.25 * ps, 3 * ps);
         }
         if (progress > 0.3) {
           const lp = p.constrain((progress - 0.3) / 0.4, 0, 1);
-          const ly = top + stemLen * 0.22;
-          const lx = stemX + p.sin(0.22 * p.PI * 0.3) * 22;
-          paintLeaf(g, lx, ly, -1, 48 * lp, b.stemC);
+          paintLeaf(g, cx, cy, stemLen, 0.22, -1, 48 * lp, b.stemC);
         }
         if (progress > 0.5) {
           const lp = p.constrain((progress - 0.5) / 0.4, 0, 1);
-          const ly = top + stemLen * 0.50;
-          const lx = stemX + p.sin(0.50 * p.PI * 0.3) * 22;
-          paintLeaf(g, lx, ly, 1, 42 * lp, b.stemC);
+          paintLeaf(g, cx, cy, stemLen, 0.50, 1, 42 * lp, b.stemC);
         }
         if (progress > 0.7) {
           const lp = p.constrain((progress - 0.7) / 0.3, 0, 1);
-          const ly = top + stemLen * 0.35;
-          const lx = stemX + p.sin(0.35 * p.PI * 0.3) * 22;
-          paintLeaf(g, lx, ly, -1, 35 * lp, b.stemC);
+          paintLeaf(g, cx, cy, stemLen, 0.35, -1, 35 * lp, b.stemC);
         }
       }
 
-      function paintLeaf(g, x, y, side, sz, sc) {
+      function paintLeaf(g, cx, cy, stemLen, tt, side, sz, sc) {
         if (sz < 2) return;
-        g.push(); g.translate(x, y); g.rotate(side * 0.65);
+        const focal = 430;
+        const stemX = p.sin(tt * p.PI * 0.32) * 22 + p.sin(tt * p.PI * 0.85) * 8;
+        const [rx, ry, rz] = rotate3(stemX, tt * stemLen, 0);
+        const ps = focal / (focal + rz);
+        g.push(); g.translate(cx + rx * ps, cy + ry * ps); g.rotate(side * 0.65 + rotYaw * 0.25);
+        sz *= ps;
         g.fill(sc[0]*0.85, sc[1]*1.15, sc[2]*0.75);
         g.beginShape();
         g.vertex(0, 0);
@@ -379,7 +377,7 @@
         }
 
         const [,,coreNz] = rotate3(0, -1, 0);
-        const coreFacing = coreNz > 0.12 ? 0 : coreNz > -0.02 ? p.map(coreNz, 0.12, -0.02, 0, 1) : 1;
+        const coreFacing = coreNz < -0.12 ? 0 : coreNz < 0.02 ? p.map(coreNz, -0.12, 0.02, 0, 1) : 1;
         const coreA = p.constrain((op - 0.45) / 0.3, 0, 1) * (1 - fd) * coreFacing;
         if (coreA > 0) items.push({ rz:0, kind:'c', sx:0, sy:0, sa:0, alpha:coreA });
 
